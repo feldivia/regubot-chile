@@ -1,0 +1,224 @@
+'use client'
+
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Send, Loader2 } from 'lucide-react'
+import Message, { type MessageData } from './Message'
+import Disclaimer from './Disclaimer'
+import { type Cita, type DatoVivo } from '@/lib/api'
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+
+export default function Chat() {
+  const [messages, setMessages] = useState<MessageData[]>([])
+  const [input, setInput] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [sessionId] = useState(() => crypto.randomUUID())
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  const scrollToBottom = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [])
+
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages, scrollToBottom])
+
+  useEffect(() => {
+    inputRef.current?.focus()
+  }, [])
+
+  const enviarMensaje = async () => {
+    const pregunta = input.trim()
+    if (!pregunta || isLoading) return
+
+    setInput('')
+    setIsLoading(true)
+
+    // Agregar mensaje del usuario
+    const userMsg: MessageData = { role: 'user', content: pregunta }
+    setMessages((prev) => [...prev, userMsg])
+
+    // Agregar mensaje vacío del bot (para streaming)
+    const botMsg: MessageData = {
+      role: 'assistant',
+      content: '',
+      citas: [],
+      datosVivos: [],
+    }
+    setMessages((prev) => [...prev, botMsg])
+
+    try {
+      const response = await fetch(`${API_URL}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pregunta, session_id: sessionId }),
+      })
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}`)
+      }
+
+      const reader = response.body?.getReader()
+      if (!reader) throw new Error('No streaming disponible')
+
+      const decoder = new TextDecoder()
+      let buffer = ''
+      let textoAcumulado = ''
+      const citasAcumuladas: Cita[] = []
+      const datosVivosAcumulados: DatoVivo[] = []
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop() || ''
+
+        let currentEvent = ''
+
+        for (const line of lines) {
+          if (line.startsWith('event:')) {
+            currentEvent = line.slice(6).trim()
+          } else if (line.startsWith('data:')) {
+            const data = line.slice(5).trim()
+            if (!data) continue
+
+            if (currentEvent === 'texto') {
+              textoAcumulado += data
+              setMessages((prev) => {
+                const updated = [...prev]
+                const last = updated[updated.length - 1]
+                if (last.role === 'assistant') {
+                  last.content = textoAcumulado
+                }
+                return [...updated]
+              })
+            } else if (currentEvent === 'cita') {
+              try {
+                const cita = JSON.parse(data.replace(/'/g, '"'))
+                citasAcumuladas.push(cita)
+                setMessages((prev) => {
+                  const updated = [...prev]
+                  const last = updated[updated.length - 1]
+                  if (last.role === 'assistant') {
+                    last.citas = [...citasAcumuladas]
+                  }
+                  return [...updated]
+                })
+              } catch {
+                // Cita no parseable, ignorar
+              }
+            } else if (currentEvent === 'dato_vivo') {
+              try {
+                const dato = JSON.parse(data.replace(/'/g, '"'))
+                datosVivosAcumulados.push(dato)
+                setMessages((prev) => {
+                  const updated = [...prev]
+                  const last = updated[updated.length - 1]
+                  if (last.role === 'assistant') {
+                    last.datosVivos = [...datosVivosAcumulados]
+                  }
+                  return [...updated]
+                })
+              } catch {
+                // Dato no parseable
+              }
+            } else if (currentEvent === 'error') {
+              textoAcumulado += `\n\nError: ${data}`
+              setMessages((prev) => {
+                const updated = [...prev]
+                const last = updated[updated.length - 1]
+                if (last.role === 'assistant') {
+                  last.content = textoAcumulado
+                }
+                return [...updated]
+              })
+            }
+          }
+        }
+      }
+    } catch (error) {
+      setMessages((prev) => {
+        const updated = [...prev]
+        const last = updated[updated.length - 1]
+        if (last.role === 'assistant') {
+          last.content =
+            'Lo siento, hubo un error al procesar tu consulta. Por favor, intenta de nuevo.'
+        }
+        return [...updated]
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      enviarMensaje()
+    }
+  }
+
+  return (
+    <div className="flex-1 flex flex-col">
+      {/* Mensajes */}
+      <div className="flex-1 overflow-y-auto chat-scroll px-4 py-4 space-y-4">
+        {messages.length === 0 && (
+          <div className="text-center py-8">
+            <p className="text-gray-500 text-sm">
+              Escribe tu pregunta sobre regulación financiera chilena
+            </p>
+          </div>
+        )}
+
+        {messages.map((msg, i) => (
+          <Message key={i} message={msg} isStreaming={isLoading && i === messages.length - 1 && msg.role === 'assistant'} />
+        ))}
+
+        {isLoading && messages[messages.length - 1]?.content === '' && (
+          <div className="chat-bubble-bot inline-flex gap-1 py-4">
+            <span className="typing-dot w-2 h-2 bg-gray-400 rounded-full" />
+            <span className="typing-dot w-2 h-2 bg-gray-400 rounded-full" />
+            <span className="typing-dot w-2 h-2 bg-gray-400 rounded-full" />
+          </div>
+        )}
+
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Disclaimer */}
+      <div className="px-4 py-1">
+        <Disclaimer compact />
+      </div>
+
+      {/* Input */}
+      <div className="p-4 border-t border-gray-200 bg-white">
+        <div className="max-w-2xl mx-auto flex gap-2">
+          <input
+            ref={inputRef}
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Pregunta sobre regulación financiera..."
+            className="flex-1 px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            disabled={isLoading}
+          />
+          <button
+            onClick={enviarMensaje}
+            disabled={!input.trim() || isLoading}
+            className="bg-primary-600 text-white p-3 rounded-xl hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {isLoading ? (
+              <Loader2 size={20} className="animate-spin" />
+            ) : (
+              <Send size={20} />
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}

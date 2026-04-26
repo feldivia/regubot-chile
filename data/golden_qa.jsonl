@@ -1,0 +1,15 @@
+{"pregunta": "¿Puedo pagar anticipadamente mi crédito de consumo sin multa?", "norma_esperada": "ley 18010", "respuesta_esperada": "Sí, la Ley 18.010 establece el derecho al prepago"}
+{"pregunta": "¿Cuánto vale la UF hoy?", "norma_esperada": "", "tipo_esperado": "dato_vivo"}
+{"pregunta": "¿Qué derechos tengo como consumidor financiero?", "norma_esperada": "ley 19496", "respuesta_esperada": "Derechos del consumidor financiero"}
+{"pregunta": "¿Mi banco puede cobrarme comisión por mantención de cuenta?", "norma_esperada": "ley 19496", "respuesta_esperada": "Transparencia en cobros"}
+{"pregunta": "¿Cuál es la tasa máxima convencional para créditos?", "norma_esperada": "ley 18010", "tipo_esperado": "mixto"}
+{"pregunta": "¿Cuánto debo cotizar para AFP?", "norma_esperada": "dl 3500", "respuesta_esperada": "10% de la remuneración imponible"}
+{"pregunta": "¿Qué es el APV y cómo funciona?", "norma_esperada": "dl 3500", "respuesta_esperada": "Ahorro Previsional Voluntario"}
+{"pregunta": "¿Pueden cambiarme las condiciones de mi tarjeta de crédito unilateralmente?", "norma_esperada": "ley 19496", "respuesta_esperada": "Modificación unilateral"}
+{"pregunta": "¿Qué pasa si un banco me cobra una comisión no informada?", "norma_esperada": "ley 19496", "respuesta_esperada": "Transparencia"}
+{"pregunta": "¿Cómo funciona la portabilidad financiera?", "norma_esperada": "ley 21236", "respuesta_esperada": "Portabilidad financiera"}
+{"pregunta": "Hola", "tipo_esperado": "saludo"}
+{"pregunta": "¿Cómo tramito mi divorcio?", "tipo_esperado": "fuera_alcance"}
+{"pregunta": "¿Qué es una Fintec según la ley chilena?", "norma_esperada": "ley 21521", "respuesta_esperada": "Ley Fintec"}
+{"pregunta": "¿Cuál es la tasa de interés máxima legal?", "norma_esperada": "ley 18010", "tipo_esperado": "mixto"}
+{"pregunta": "¿Puedo reclamar en SERNAC por cobros abusivos?", "norma_esperada": "ley 19496", "respuesta_esperada": "SERNAC reclamos"}
