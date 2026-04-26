@@ -3,7 +3,7 @@
 ## Prerequisitos
 
 - Cuenta en [railway.app](https://railway.app)
-- Repo conectado: `github.com/feldivia/regubot-chile`
+- Repositorio del proyecto conectado a GitHub
 - API keys de Anthropic y OpenAI
 
 ---
@@ -12,7 +12,7 @@
 
 1. Ir a [railway.app/new](https://railway.app/new)
 2. Click "Deploy from GitHub repo"
-3. Seleccionar el repo `feldivia/regubot-chile`
+3. Seleccionar el repositorio del proyecto
 
 ---
 
@@ -81,8 +81,8 @@ En el servicio del backend, ir a **Variables** y agregar:
 
 | Variable | Valor | Descripcion |
 |----------|-------|-------------|
-| `NEXT_PUBLIC_API_URL` | `https://tu-backend.up.railway.app` | URL publica del backend |
-| `BACKEND_INTERNAL_URL` | `http://backend.railway.internal:8000` | URL interna (mas rapida, gratis) |
+| `NEXT_PUBLIC_API_URL` | URL publica del backend (ej: `https://<nombre-servicio>.up.railway.app`) | URL publica del backend |
+| `BACKEND_INTERNAL_URL` | URL interna del backend (ej: `http://<nombre-servicio>.railway.internal:8000`) | URL interna entre servicios (mas rapida, gratis) |
 
 ### Opcion B: Frontend en Vercel (alternativa)
 
@@ -103,11 +103,11 @@ En el servicio del backend, ir a **Variables** y agregar:
 ## Paso 7: Verificar deploy
 
 ### Backend
-- Abrir `https://tu-backend.up.railway.app/health`
+- Abrir `https://<url-del-backend>/health`
 - Debe retornar: `{"status": "ok", "database": "connected"}`
 
 ### Estadisticas
-- `https://tu-backend.up.railway.app/api/admin/stats`
+- `https://<url-del-backend>/api/admin/stats`
 - Muestra conteo de normas, articulos, chunks y consultas
 
 ### Frontend
@@ -124,7 +124,7 @@ Opciones:
 ### Desde Railway (recomendado)
 - Ir al backend > **Settings** > **Cron Jobs** o ejecutar via API:
 ```bash
-curl -X POST https://tu-backend.up.railway.app/api/admin/reindex
+curl -X POST https://<url-del-backend>/api/admin/reindex
 ```
 
 ### Desde local contra la DB de Railway
