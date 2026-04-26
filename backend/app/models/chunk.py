@@ -1,8 +1,12 @@
-"""Modelo para chunks vectorizados usados en RAG."""
+"""Modelo para chunks vectorizados usados en RAG.
+
+Usa JSONB para almacenar embeddings. Compatible con cualquier PostgreSQL
+sin necesidad de la extensión pgvector. La búsqueda vectorial se hace
+calculando distancia coseno en Python.
+"""
 
 import uuid
 
-from pgvector.sqlalchemy import Vector
 from sqlalchemy import ForeignKey, Integer, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -11,7 +15,7 @@ from app.models.base import Base, gen_uuid
 
 
 class Chunk(Base):
-    """Chunk de texto con embedding para búsqueda vectorial."""
+    """Chunk de texto con embedding almacenado como JSONB."""
 
     __tablename__ = "chunk"
 
@@ -20,7 +24,7 @@ class Chunk(Base):
         UUID(as_uuid=True), ForeignKey("articulo.id", ondelete="CASCADE"), nullable=False
     )
     texto: Mapped[str] = mapped_column(Text, nullable=False)
-    embedding = mapped_column(Vector(3072))
+    embedding: Mapped[list | None] = mapped_column(JSONB)
     metadata_: Mapped[dict | None] = mapped_column("metadata", JSONB)
     tokens: Mapped[int | None] = mapped_column(Integer)
 

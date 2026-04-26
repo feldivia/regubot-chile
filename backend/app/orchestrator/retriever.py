@@ -1,10 +1,10 @@
-"""Retriever híbrido: búsqueda vectorial (pgvector) + BM25 sobre metadatos."""
+"""Retriever híbrido: búsqueda vectorial (coseno en Python) + keywords."""
 
 import logging
+import math
 from uuid import UUID
 
-from pgvector.sqlalchemy import Vector
-from sqlalchemy import and_, func, or_, select, text
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
@@ -12,6 +12,16 @@ from app.models import Articulo, Chunk, Norma
 from app.utils.embeddings import generar_embedding_query
 
 logger = logging.getLogger(__name__)
+
+
+def _cosine_similarity(a: list[float], b: list[float]) -> float:
+    """Calcula similitud coseno entre dos vectores."""
+    dot = sum(x * y for x, y in zip(a, b))
+    norm_a = math.sqrt(sum(x * x for x in a))
+    norm_b = math.sqrt(sum(x * x for x in b))
+    if norm_a == 0 or norm_b == 0:
+        return 0.0
+    return dot / (norm_a * norm_b)
 
 
 async def recuperar_chunks(
@@ -22,18 +32,16 @@ async def recuperar_chunks(
 ) -> list[dict]:
     """Recupera los chunks más relevantes usando búsqueda híbrida.
 
-    1. Búsqueda vectorial por similitud coseno
-    2. Búsqueda BM25 por keywords en título/número de norma
+    1. Búsqueda vectorial (coseno calculado en Python)
+    2. Búsqueda por keywords en título/número de norma
     3. Fusión de resultados con ponderación
     """
     top_k = top_k or settings.retrieval_top_k
     filtros = filtros or {}
 
-    # Búsquedas en paralelo
     resultados_vectorial = await _busqueda_vectorial(pregunta, db, top_k * 2, filtros)
     resultados_keyword = await _busqueda_keyword(pregunta, db, top_k, filtros)
 
-    # Fusionar y deduplicar (Reciprocal Rank Fusion simplificado)
     fusionados = _fusionar_resultados(resultados_vectorial, resultados_keyword, top_k)
 
     logger.info(
@@ -52,21 +60,16 @@ async def _busqueda_vectorial(
     top_k: int,
     filtros: dict,
 ) -> list[dict]:
-    """Búsqueda por similitud vectorial en pgvector."""
+    """Búsqueda vectorial: trae chunks con embedding y calcula coseno en Python."""
     try:
         query_embedding = await generar_embedding_query(pregunta)
     except Exception:
         logger.warning("Error generando embedding de query, cayendo a solo keyword")
         return []
 
-    # Construir query con filtros opcionales
+    # Traer chunks que tengan embedding
     stmt = (
-        select(
-            Chunk,
-            Articulo,
-            Norma,
-            Chunk.embedding.cosine_distance(query_embedding).label("distancia"),
-        )
+        select(Chunk, Articulo, Norma)
         .join(Articulo, Chunk.articulo_id == Articulo.id)
         .join(Norma, Articulo.norma_id == Norma.id)
         .where(Chunk.embedding.isnot(None))
@@ -77,10 +80,22 @@ async def _busqueda_vectorial(
     if "organismo" in filtros:
         stmt = stmt.where(Norma.organismo == filtros["organismo"])
 
-    stmt = stmt.order_by("distancia").limit(top_k)
+    # Traer un lote amplio para rankear en Python
+    stmt = stmt.limit(500)
 
     result = await db.execute(stmt)
     rows = result.all()
+
+    # Calcular similitud coseno y rankear
+    scored = []
+    for row in rows:
+        emb = row.Chunk.embedding
+        if not emb or not isinstance(emb, list):
+            continue
+        score = _cosine_similarity(query_embedding, emb)
+        scored.append((row, score))
+
+    scored.sort(key=lambda x: x[1], reverse=True)
 
     return [
         {
@@ -94,10 +109,10 @@ async def _busqueda_vectorial(
             "articulo_path": row.Articulo.path,
             "url_oficial": row.Norma.url_oficial,
             "organismo": row.Norma.organismo,
-            "score": 1.0 - row.distancia,  # Convertir distancia a similitud
+            "score": score,
             "fuente": "vectorial",
         }
-        for row in rows
+        for row, score in scored[:top_k]
     ]
 
 

@@ -55,15 +55,15 @@ CREATE TABLE chunk (... embedding VECTOR(3072) ...)
 
 **Causa raíz:** La imagen de PostgreSQL nativa de Railway (PostgreSQL 17.9 Debian) no incluye la extensión pgvector preinstalada. `CREATE EXTENSION IF NOT EXISTS vector` falla porque el paquete no existe en el sistema, no solo porque no está habilitada.
 
-**Solución:** En Railway, usar el template **"PostgreSQL + pgvector"** en vez del PostgreSQL nativo:
-1. Eliminar el servicio PostgreSQL actual
-2. Click **"New"** > buscar **"pgvector"** en los templates
-3. Desplegar el template de pgvector
-4. Re-vincular `DATABASE_URL` al backend
+**Solución final:** Eliminar dependencia de pgvector completamente. Almacenar embeddings como JSONB y calcular similitud coseno en Python. Esto funciona con cualquier PostgreSQL sin extensiones.
 
-**Alternativa:** Si no hay template de pgvector disponible, se puede usar Neon (neon.tech) o Supabase como proveedor externo de PostgreSQL con pgvector, y configurar `DATABASE_URL` manualmente.
+**Cambios:**
+- `backend/app/models/chunk.py` — embedding cambiado de `Vector(3072)` a `JSONB`
+- `backend/app/orchestrator/retriever.py` — similitud coseno calculada en Python en vez de operador pgvector
+- `backend/app/main.py` — eliminado `CREATE EXTENSION vector`
+- `backend/requirements.txt` y `pyproject.toml` — eliminada dependencia `pgvector`
 
-**Archivo:** `backend/app/main.py` (mejorado manejo de error para loguear instrucciones claras)
+**Lección:** No asumir que servicios "pgvector" de Railway realmente tienen la extensión. Usar JSONB es más portable y funciona en cualquier PostgreSQL.
 
 ---
 

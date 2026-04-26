@@ -7,7 +7,6 @@ import httpx
 import sentry_sdk
 from fastapi import FastAPI, Request
 from fastapi.responses import StreamingResponse
-from sqlalchemy import text
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.admin import router as admin_router
@@ -35,20 +34,8 @@ async def lifespan(app: FastAPI):
     if settings.sentry_dsn:
         sentry_sdk.init(dsn=settings.sentry_dsn, traces_sample_rate=0.1)
 
-    # Habilitar extensión pgvector y crear tablas
+    # Crear tablas
     async with engine.begin() as conn:
-        try:
-            await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
-            logger.info("Extensión pgvector habilitada")
-        except Exception as e:
-            logger.error(
-                "No se pudo habilitar pgvector: %s. "
-                "Ejecutar manualmente: CREATE EXTENSION IF NOT EXISTS vector; "
-                "o usar una imagen de PostgreSQL con pgvector instalado.",
-                e,
-            )
-            raise
-
         await conn.run_sync(Base.metadata.create_all)
 
     logger.info("RegBot Chile iniciado correctamente")
