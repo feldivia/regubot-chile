@@ -3,8 +3,10 @@
 import logging
 from contextlib import asynccontextmanager
 
+import httpx
 import sentry_sdk
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import StreamingResponse
 from sqlalchemy import text
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -14,6 +16,8 @@ from app.api.health import router as health_router
 from app.config import settings
 from app.db.session import engine
 from app.models.base import Base
+
+FRONTEND_URL = "http://127.0.0.1:3000"
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +37,18 @@ async def lifespan(app: FastAPI):
 
     # Habilitar extensión pgvector y crear tablas
     async with engine.begin() as conn:
-        await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+        try:
+            await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+            logger.info("Extensión pgvector habilitada")
+        except Exception as e:
+            logger.error(
+                "No se pudo habilitar pgvector: %s. "
+                "Ejecutar manualmente: CREATE EXTENSION IF NOT EXISTS vector; "
+                "o usar una imagen de PostgreSQL con pgvector instalado.",
+                e,
+            )
+            raise
+
         await conn.run_sync(Base.metadata.create_all)
 
     logger.info("RegBot Chile iniciado correctamente")
@@ -68,3 +83,36 @@ app.add_middleware(
 app.include_router(health_router)
 app.include_router(chat_router, prefix="/api")
 app.include_router(admin_router, prefix="/api/admin")
+
+
+# Proxy catch-all: todo lo que no sea /api o /health lo sirve Next.js
+@app.api_route("/{path:path}", methods=["GET", "HEAD"])
+async def frontend_proxy(request: Request, path: str):
+    url = f"{FRONTEND_URL}/{path}"
+    async with httpx.AsyncClient() as client:
+        proxy_resp = await client.get(
+            url,
+            headers={k: v for k, v in request.headers.items() if k.lower() != "host"},
+            params=request.query_params,
+            follow_redirects=True,
+        )
+    return StreamingResponse(
+        iter([proxy_resp.content]),
+        status_code=proxy_resp.status_code,
+        headers=dict(proxy_resp.headers),
+    )
+
+
+@app.get("/")
+async def root_proxy(request: Request):
+    async with httpx.AsyncClient() as client:
+        proxy_resp = await client.get(
+            FRONTEND_URL,
+            headers={k: v for k, v in request.headers.items() if k.lower() != "host"},
+            follow_redirects=True,
+        )
+    return StreamingResponse(
+        iter([proxy_resp.content]),
+        status_code=proxy_resp.status_code,
+        headers=dict(proxy_resp.headers),
+    )

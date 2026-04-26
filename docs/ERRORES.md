@@ -43,6 +43,30 @@ No start command detected. Specify a start command
 
 ---
 
+## ERR-003: pgvector no disponible en PostgreSQL de Railway
+
+**Fecha:** 2026-04-26
+**Contexto:** Primer deploy del backend en Railway. PostgreSQL arranca bien pero la app crashea al crear tablas.
+**Error:**
+```
+ERROR: type "vector" does not exist at character 106
+CREATE TABLE chunk (... embedding VECTOR(3072) ...)
+```
+
+**Causa raíz:** La imagen de PostgreSQL nativa de Railway (PostgreSQL 17.9 Debian) no incluye la extensión pgvector preinstalada. `CREATE EXTENSION IF NOT EXISTS vector` falla porque el paquete no existe en el sistema, no solo porque no está habilitada.
+
+**Solución:** En Railway, usar el template **"PostgreSQL + pgvector"** en vez del PostgreSQL nativo:
+1. Eliminar el servicio PostgreSQL actual
+2. Click **"New"** > buscar **"pgvector"** en los templates
+3. Desplegar el template de pgvector
+4. Re-vincular `DATABASE_URL` al backend
+
+**Alternativa:** Si no hay template de pgvector disponible, se puede usar Neon (neon.tech) o Supabase como proveedor externo de PostgreSQL con pgvector, y configurar `DATABASE_URL` manualmente.
+
+**Archivo:** `backend/app/main.py` (mejorado manejo de error para loguear instrucciones claras)
+
+---
+
 ## Plantilla para nuevos errores
 
 ```

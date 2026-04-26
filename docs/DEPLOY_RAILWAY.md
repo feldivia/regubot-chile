@@ -16,19 +16,24 @@
 
 ---
 
-## Paso 2: Agregar PostgreSQL
+## Paso 2: Agregar PostgreSQL con pgvector
 
-1. Dentro del proyecto, click **"New"** > **"Database"** > **"PostgreSQL"**
-2. Railway crea la DB y genera `DATABASE_URL` automaticamente
-3. Conectarse a la DB y ejecutar una sola vez:
+**IMPORTANTE:** Se necesita PostgreSQL con la extensión pgvector. El PostgreSQL nativo de Railway NO incluye pgvector.
 
-```sql
-CREATE EXTENSION IF NOT EXISTS vector;
-```
+### Opcion A: Template pgvector en Railway (recomendado)
+1. Click **"New"** > **"Template"**
+2. Buscar **"pgvector"** y desplegar el template
+3. Railway crea la DB con pgvector preinstalado y genera `DATABASE_URL`
 
-Esto habilita pgvector para los embeddings. Se puede hacer desde:
-- Railway dashboard > PostgreSQL > **Data** > **Query**
-- O con `psql` usando la connection string de Railway
+### Opcion B: Proveedor externo con pgvector
+Si no hay template disponible, usar un proveedor externo gratuito:
+- **Neon** (neon.tech) — PostgreSQL serverless con pgvector incluido, tier gratuito
+- **Supabase** (supabase.com) — PostgreSQL con pgvector, tier gratuito
+
+Configurar `DATABASE_URL` manualmente en las variables del backend con la connection string del proveedor.
+
+### Verificar pgvector
+La app ejecuta `CREATE EXTENSION IF NOT EXISTS vector` automaticamente al arrancar. Si falla, el backend mostrara un error claro en los logs.
 
 ---
 

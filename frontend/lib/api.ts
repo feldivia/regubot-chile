@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+const API_URL = process.env.NEXT_PUBLIC_API_URL || ''
 
 export interface ChatEvent {
   tipo: 'texto' | 'cita' | 'dato_vivo' | 'verificacion' | 'error' | 'fin'
