@@ -1,5 +1,6 @@
 """Endpoint principal de chat con streaming SSE."""
 
+import json
 import logging
 import time
 import uuid
@@ -47,22 +48,22 @@ async def chat(request: ChatRequest, db: AsyncSession = Depends(get_db)):
             async for evento in ejecutar_consulta(request.pregunta, db):
                 if evento["tipo"] == "texto":
                     respuesta_completa += evento["contenido"]
-                    yield {"event": "texto", "data": evento["contenido"]}
+                    yield {"event": "texto", "data": json.dumps(evento["contenido"], ensure_ascii=False)}
 
                 elif evento["tipo"] == "cita":
                     citas.append(evento["contenido"])
-                    yield {"event": "cita", "data": str(evento["contenido"])}
+                    yield {"event": "cita", "data": json.dumps(evento["contenido"], ensure_ascii=False)}
 
                 elif evento["tipo"] == "dato_vivo":
                     datos_vivos.update(evento["contenido"])
-                    yield {"event": "dato_vivo", "data": str(evento["contenido"])}
+                    yield {"event": "dato_vivo", "data": json.dumps(evento["contenido"], ensure_ascii=False)}
 
                 elif evento["tipo"] == "verificacion":
                     verificacion = evento["contenido"]
-                    yield {"event": "verificacion", "data": str(verificacion)}
+                    yield {"event": "verificacion", "data": json.dumps(verificacion)}
 
                 elif evento["tipo"] == "error":
-                    yield {"event": "error", "data": evento["contenido"]}
+                    yield {"event": "error", "data": json.dumps(evento["contenido"], ensure_ascii=False)}
 
             # Guardar log de consulta
             latencia_ms = int((time.monotonic() - inicio) * 1000)

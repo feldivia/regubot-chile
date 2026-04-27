@@ -106,7 +106,7 @@ NORMAS_SEED = [
         "numero": "21521",
         "titulo": "Ley Fintec - Promueve la Competencia e Inclusión Financiera a través de la Innovación y Tecnología en la Prestación de Servicios Financieros",
         "organismo": "Congreso Nacional",
-        "url_oficial": "https://www.bcn.cl/leychile/navegar?idNorma=1173988",
+        "url_oficial": "https://www.bcn.cl/leychile/navegar?idNorma=21521",
         "articulos": [
             {
                 "numero": "1",
@@ -167,7 +167,7 @@ NORMAS_SEED = [
         "numero": "18045",
         "titulo": "Ley de Mercado de Valores",
         "organismo": "Congreso Nacional",
-        "url_oficial": "https://www.bcn.cl/leychile/navegar?idNorma=29472",
+        "url_oficial": "https://www.bcn.cl/leychile/navegar?idNorma=18045",
         "articulos": [
             {
                 "numero": "1",
@@ -236,7 +236,7 @@ NORMAS_SEED = [
         "numero": "18010",
         "titulo": "Ley sobre Operaciones de Crédito de Dinero",
         "organismo": "Congreso Nacional",
-        "url_oficial": "https://www.bcn.cl/leychile/navegar?idNorma=29412",
+        "url_oficial": "https://www.bcn.cl/leychile/navegar?idNorma=18010",
         "articulos": [
             {
                 "numero": "1",
@@ -280,7 +280,7 @@ NORMAS_SEED = [
         "numero": "20345",
         "titulo": "Ley sobre Sistemas de Compensación y Liquidación de Instrumentos Financieros",
         "organismo": "Congreso Nacional",
-        "url_oficial": "https://www.bcn.cl/leychile/navegar?idNorma=1007820",
+        "url_oficial": "https://www.bcn.cl/leychile/navegar?idNorma=20345",
         "articulos": [
             {
                 "numero": "1",

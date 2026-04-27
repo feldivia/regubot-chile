@@ -80,14 +80,24 @@ export default function Chat({ preguntaInicial, onCitasUpdate }: ChatProps) {
         buffer = lines.pop() || ''
 
         let currentEvent = ''
+        let dataBuffer = ''
 
         for (const line of lines) {
           if (line.startsWith('event:')) {
             currentEvent = line.slice(6).trim()
+            dataBuffer = ''
           } else if (line.startsWith('data:')) {
-            const data = line.slice(5)
-            // SSE spec: data vacío entre data: lines = newline
-            const contenido = data === '' || data === ' ' ? '\n' : data.startsWith(' ') ? data.slice(1) : data
+            // Acumular líneas data: (SSE puede dividir en múltiples líneas)
+            const raw = line.slice(5)
+            dataBuffer += (dataBuffer ? '\n' : '') + (raw.startsWith(' ') ? raw.slice(1) : raw)
+          } else if (line.trim() === '' && dataBuffer) {
+            // Línea vacía = fin del evento SSE, procesar
+            let contenido: string
+            try {
+              contenido = JSON.parse(dataBuffer)
+            } catch {
+              contenido = dataBuffer
+            }
 
             if (currentEvent === 'texto') {
               textoAcumulado += contenido
@@ -101,7 +111,7 @@ export default function Chat({ preguntaInicial, onCitasUpdate }: ChatProps) {
               })
             } else if (currentEvent === 'cita') {
               try {
-                const cita = JSON.parse(contenido.replace(/'/g, '"'))
+                const cita = typeof contenido === 'string' ? JSON.parse(contenido) : contenido
                 citasAcumuladas.push(cita)
                 setMessages((prev) => {
                   const updated = [...prev]
@@ -117,7 +127,7 @@ export default function Chat({ preguntaInicial, onCitasUpdate }: ChatProps) {
               }
             } else if (currentEvent === 'dato_vivo') {
               try {
-                const raw = JSON.parse(contenido.replace(/'/g, '"'))
+                const raw = typeof contenido === 'string' ? JSON.parse(contenido) : contenido
                 const keys = Object.keys(raw)
                 if (keys.length === 1 && typeof raw[keys[0]] === 'object') {
                   const inner = raw[keys[0]] as DatoVivo
@@ -145,6 +155,8 @@ export default function Chat({ preguntaInicial, onCitasUpdate }: ChatProps) {
                 return [...updated]
               })
             }
+
+            dataBuffer = ''
           }
         }
       }
