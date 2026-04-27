@@ -74,6 +74,10 @@ app.include_router(admin_router, prefix="/api/admin")
 
 
 # Proxy catch-all: todo lo que no sea /api o /health lo sirve Next.js
+# Headers que no se deben reenviar del proxy (httpx descomprime automaticamente)
+_HOP_BY_HOP = {"content-encoding", "content-length", "transfer-encoding", "connection"}
+
+
 @app.api_route("/{path:path}", methods=["GET", "HEAD"])
 async def frontend_proxy(request: Request, path: str):
     url = f"{FRONTEND_URL}/{path}"
@@ -85,10 +89,16 @@ async def frontend_proxy(request: Request, path: str):
                 params=request.query_params,
                 follow_redirects=True,
             )
+        # Filtrar headers hop-by-hop: httpx descomprime gzip, asi que
+        # reenviar content-encoding causa ERR_CONTENT_DECODING_FAILED
+        headers = {
+            k: v for k, v in proxy_resp.headers.items()
+            if k.lower() not in _HOP_BY_HOP
+        }
         return StreamingResponse(
             iter([proxy_resp.content]),
             status_code=proxy_resp.status_code,
-            headers=dict(proxy_resp.headers),
+            headers=headers,
         )
     except httpx.ConnectError:
         return JSONResponse(
