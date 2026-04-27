@@ -1,8 +1,8 @@
-# Arquitectura de RegBot Chile
+# Arquitectura de ReguBot Chile
 
 ## Vision general
 
-RegBot Chile es un chatbot RAG (Retrieval-Augmented Generation) especializado en regulacion financiera chilena.
+ReguBot Chile es un chatbot RAG (Retrieval-Augmented Generation) especializado en regulacion financiera chilena.
 
 ## Capas
 

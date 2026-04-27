@@ -215,7 +215,7 @@ def _formatear_contexto(chunks: list[dict]) -> str:
 
 def _prompt_sistema_default() -> str:
     """Prompt de sistema por defecto si no se encuentra el archivo."""
-    return """Eres RegBot, un asistente que explica la regulación financiera chilena a personas comunes.
+    return """Eres ReguBot, un asistente que explica la regulación financiera chilena a personas comunes.
 
 ## Principios innegociables
 1. Nunca inventes normas. Solo cita las que aparezcan en el contexto entregado.

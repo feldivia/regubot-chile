@@ -39,16 +39,16 @@ async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-    logger.info("RegBot Chile iniciado correctamente")
+    logger.info("ReguBot Chile iniciado correctamente")
     yield
 
     # Cleanup
     await engine.dispose()
-    logger.info("RegBot Chile detenido")
+    logger.info("ReguBot Chile detenido")
 
 
 app = FastAPI(
-    title="RegBot Chile",
+    title="ReguBot Chile",
     description="API del chatbot de regulación financiera chilena",
     version="0.1.0",
     lifespan=lifespan,

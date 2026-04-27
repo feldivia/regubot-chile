@@ -36,7 +36,7 @@ class Settings(BaseSettings):
     similarity_threshold: float = 0.7
     verification_threshold: float = 0.6
 
-    model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
+    model_config = {"env_file": ".env", "env_file_encoding": "utf-8", "extra": "ignore"}
 
 
 settings = Settings()

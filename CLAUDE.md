@@ -1,7 +1,7 @@
 # CLAUDE.md - Instrucciones para Claude Code
 
 ## Proyecto
-RegBot Chile: chatbot de regulacion financiera chilena con RAG + Claude.
+ReguBot Chile: chatbot de regulacion financiera chilena con RAG + Claude.
 
 ## Archivos criticos a consultar SIEMPRE
 

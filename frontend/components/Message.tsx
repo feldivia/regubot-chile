@@ -1,6 +1,8 @@
 'use client'
 
 import { Bot, User } from 'lucide-react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import CitationCard from './CitationCard'
 import LiveDataBadge from './LiveDataBadge'
 import { type Cita, type DatoVivo } from '@/lib/api'
@@ -34,10 +36,16 @@ export default function Message({ message, isStreaming }: Props) {
       {/* Contenido */}
       <div className={`flex flex-col gap-2 ${isUser ? 'items-end' : 'items-start'}`}>
         <div className={isUser ? 'chat-bubble-user' : 'chat-bubble-bot'}>
-          <div className="whitespace-pre-wrap text-sm leading-relaxed">
-            {message.content}
-            {isStreaming && <span className="animate-pulse">|</span>}
-          </div>
+          {isUser ? (
+            <div className="text-sm leading-relaxed">{message.content}</div>
+          ) : (
+            <div className="prose-chat text-sm leading-relaxed">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {message.content}
+              </ReactMarkdown>
+              {isStreaming && <span className="animate-pulse">|</span>}
+            </div>
+          )}
         </div>
 
         {/* Datos en vivo */}

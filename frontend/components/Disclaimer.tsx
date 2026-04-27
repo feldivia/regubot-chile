@@ -31,7 +31,7 @@ export default function Disclaimer({ compact }: Props) {
         <div>
           <p className="font-medium mb-1">Aviso importante</p>
           <p>
-            RegBot proporciona información orientativa sobre regulación
+            ReguBot proporciona información orientativa sobre regulación
             financiera chilena. <strong>No constituye asesoría legal.</strong>{' '}
             Para decisiones financieras importantes o disputas, consulta a un
             abogado o acude a{' '}

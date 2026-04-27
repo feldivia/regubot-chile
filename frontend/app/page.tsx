@@ -17,7 +17,7 @@ export default function Home() {
             <Scale size={24} />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-gray-900">RegBot Chile</h1>
+            <h1 className="text-lg font-bold text-gray-900">ReguBot Chile</h1>
             <p className="text-xs text-gray-500">
               Regulación financiera al alcance de todos
             </p>
@@ -38,9 +38,9 @@ export default function Home() {
               </h2>
               <p className="text-gray-600 mb-8">
                 Explico leyes financieras en lenguaje simple, con citas
-                verificadas a fuentes oficiales. Puedo ayudarte con dudas sobre
-                créditos, bancos, AFP, tarjetas, derechos del consumidor
-                financiero, y más.
+                verificadas a fuentes oficiales. Puedo ayudarte con la Ley del
+                Consumidor, Ley Fintec, Mercado de Valores, Operaciones de
+                Crédito y Sistemas de Pago.
               </p>
 
               {/* Sugerencias */}
@@ -83,8 +83,8 @@ export default function Home() {
 }
 
 const SUGERENCIAS = [
-  '¿Puedo pagar anticipadamente mi crédito sin multa?',
-  '¿Cuál es la tasa máxima que me pueden cobrar?',
-  '¿Qué derechos tengo como consumidor financiero?',
-  '¿Cuánto vale la UF hoy?',
+  '¿Qué derechos tengo como consumidor?',
+  '¿Cuál es la tasa máxima de interés que me pueden cobrar?',
+  '¿Qué es la Ley Fintec y el sistema de finanzas abiertas?',
+  '¿Qué es información privilegiada en el mercado de valores?',
 ]

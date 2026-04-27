@@ -79,7 +79,7 @@ En el servicio principal, ir a **Variables** y agregar:
 
 ### Frontend
 - Abrir `https://<url-del-servicio>/`
-- Debe mostrar la landing page de RegBot
+- Debe mostrar la landing page de ReguBot
 
 ### Estadisticas
 - `https://<url-del-servicio>/api/admin/stats`

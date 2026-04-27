@@ -11,7 +11,7 @@ class TestPlanner:
 
         assert plan.consultar_rag is False
         assert plan.respuesta_directa is not None
-        assert "RegBot" in plan.respuesta_directa
+        assert "ReguBot" in plan.respuesta_directa
 
     def test_fuera_alcance_retorna_respuesta_directa(self):
         intencion = Intencion(tipo="fuera_alcance", confianza=0.8)

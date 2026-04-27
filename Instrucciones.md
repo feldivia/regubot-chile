@@ -1,4 +1,4 @@
-# RegBot Chile — Especificación Técnica para Claude Code
+# ReguBot Chile — Especificación Técnica para Claude Code
 
 > **Propósito:** Construir un chatbot con IA que convierte la regulación financiera chilena (hoy enterrada en PDFs legales, portales desconectados y lenguaje de abogado) en respuestas que cualquier persona puede entender, verificadas en tiempo real contra datos oficiales.
 
@@ -327,7 +327,7 @@ Ejemplo: usuario pregunta *"¿Puedo pagar anticipadamente mi crédito de consumo
 Archivo: `backend/app/prompts/system.md`
 
 ```markdown
-Eres RegBot, un asistente que explica la regulación financiera chilena a personas comunes.
+Eres ReguBot, un asistente que explica la regulación financiera chilena a personas comunes.
 
 ## Principios innegociables
 1. **Nunca inventes normas.** Solo cita las que aparezcan en el contexto entregado.

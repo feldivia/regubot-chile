@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 async def main():
     """Ejecuta la ingesta completa del corpus."""
-    logger.info("=== Iniciando bootstrap del corpus RegBot Chile ===")
+    logger.info("=== Iniciando bootstrap del corpus ReguBot Chile ===")
     logger.info("Base de datos: %s", settings.database_url.split("@")[-1])
 
     # Crear tablas si no existen

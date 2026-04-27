@@ -1,4 +1,4 @@
-# Avance del proyecto RegBot Chile
+# Avance del proyecto ReguBot Chile
 
 Ultima actualizacion: 2026-04-26
 

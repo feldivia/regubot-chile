@@ -1,4 +1,4 @@
-# RegBot Chile
+# ReguBot Chile
 
 Chatbot con IA que convierte la regulación financiera chilena en respuestas que cualquier persona puede entender, verificadas en tiempo real contra datos oficiales.
 

@@ -5,7 +5,7 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'RegBot Chile - Regulación Financiera al Alcance de Todos',
+  title: 'ReguBot Chile - Regulación Financiera al Alcance de Todos',
   description:
     'Chatbot con IA que explica la regulación financiera chilena en lenguaje simple, con citas verificadas a fuentes oficiales.',
 }
