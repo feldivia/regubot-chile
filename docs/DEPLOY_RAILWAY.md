@@ -14,32 +14,24 @@
 2. Click "Deploy from GitHub repo"
 3. Seleccionar el repositorio del proyecto
 
----
-
-## Paso 2: Agregar PostgreSQL con pgvector
-
-**IMPORTANTE:** Se necesita PostgreSQL con la extensión pgvector. El PostgreSQL nativo de Railway NO incluye pgvector.
-
-### Opcion A: Template pgvector en Railway (recomendado)
-1. Click **"New"** > **"Template"**
-2. Buscar **"pgvector"** y desplegar el template
-3. Railway crea la DB con pgvector preinstalado y genera `DATABASE_URL`
-
-### Opcion B: Proveedor externo con pgvector
-Si no hay template disponible, usar un proveedor externo gratuito:
-- **Neon** (neon.tech) — PostgreSQL serverless con pgvector incluido, tier gratuito
-- **Supabase** (supabase.com) — PostgreSQL con pgvector, tier gratuito
-
-Configurar `DATABASE_URL` manualmente en las variables del backend con la connection string del proveedor.
-
-### Verificar pgvector
-La app ejecuta `CREATE EXTENSION IF NOT EXISTS vector` automaticamente al arrancar. Si falla, el backend mostrara un error claro en los logs.
+Railway detectara el `Dockerfile` en la raiz y usara `builder = "DOCKERFILE"` (configurado en `railway.toml`).
 
 ---
 
-## Paso 3: Configurar variables de entorno del backend
+## Paso 2: Agregar PostgreSQL
 
-En el servicio del backend, ir a **Variables** y agregar:
+Se usa PostgreSQL estandar (sin pgvector). Los embeddings se almacenan como JSONB y la similitud coseno se calcula en Python.
+
+1. Click **"New"** > **"Database"** > **"PostgreSQL"**
+2. Railway crea la DB y genera `DATABASE_URL` automaticamente
+
+**Nota:** La app convierte automaticamente el prefijo `postgresql://` a `postgresql+asyncpg://` (ver `backend/app/db/session.py`).
+
+---
+
+## Paso 3: Configurar variables de entorno
+
+En el servicio principal, ir a **Variables** y agregar:
 
 ### Obligatorias
 
@@ -58,79 +50,45 @@ En el servicio del backend, ir a **Variables** y agregar:
 | `BCCH_PASSWORD` | (vacio) | Password API Banco Central |
 | `CLAUDE_MODEL` | `claude-haiku-4-5-20251001` | Modelo de Claude a usar |
 | `EMBEDDING_MODEL` | `text-embedding-3-large` | Modelo de embeddings OpenAI |
-| `EMBEDDING_DIMENSIONS` | `3072` | Dimensiones del vector |
-| `LOG_LEVEL` | `INFO` | Nivel de logging (DEBUG, INFO, WARNING, ERROR) |
-| `RATE_LIMIT_PER_MIN` | `20` | Maximo de requests por IP por minuto (requiere Redis) |
+| `LOG_LEVEL` | `INFO` | Nivel de logging |
 | `SENTRY_DSN` | (vacio) | DSN de Sentry para monitoreo de errores |
 
 ---
 
-## Paso 4: Vincular PostgreSQL al backend
+## Paso 4: Vincular PostgreSQL
 
-1. Click en el servicio del backend
+1. Click en el servicio principal
 2. Ir a **Variables** > **Reference Variables**
 3. Vincular `DATABASE_URL` desde el servicio PostgreSQL
-4. Railway inyecta la URL automaticamente
-
-**Nota:** Railway provee `DATABASE_URL` con prefijo `postgresql://`. La app lo convierte automaticamente a `postgresql+asyncpg://` (ver `backend/app/db/session.py`).
 
 ---
 
-## Paso 5: Deploy del frontend
-
-### Opcion A: Servicio separado en Railway
-
-1. Click **"New"** > **"GitHub Repo"** > seleccionar el mismo repo
-2. En **Settings** > **Source** > **Root Directory**: escribir `frontend`
-3. Configurar variables:
-
-| Variable | Valor | Descripcion |
-|----------|-------|-------------|
-| `NEXT_PUBLIC_API_URL` | URL publica del backend (ej: `https://<nombre-servicio>.up.railway.app`) | URL publica del backend |
-| `BACKEND_INTERNAL_URL` | URL interna del backend (ej: `http://<nombre-servicio>.railway.internal:8000`) | URL interna entre servicios (mas rapida, gratis) |
-
-### Opcion B: Frontend en Vercel (alternativa)
-
-1. Importar repo en [vercel.com](https://vercel.com)
-2. Root Directory: `frontend`
-3. Variable: `NEXT_PUBLIC_API_URL` = URL del backend en Railway
-
----
-
-## Paso 6: (Opcional) Agregar Redis
+## Paso 5: (Opcional) Agregar Redis
 
 1. Click **"New"** > **"Database"** > **"Redis"**
-2. Vincular `REDIS_URL` al servicio del backend
+2. Vincular `REDIS_URL` al servicio principal
 3. Con Redis habilitado se activan: cache de datos en vivo y rate limiting por IP
 
 ---
 
-## Paso 7: Verificar deploy
+## Paso 6: Verificar deploy
 
-### Backend
-- Abrir `https://<url-del-backend>/health`
+### Health check
+- Abrir `https://<url-del-servicio>/health`
 - Debe retornar: `{"status": "ok", "database": "connected"}`
 
-### Estadisticas
-- `https://<url-del-backend>/api/admin/stats`
-- Muestra conteo de normas, articulos, chunks y consultas
-
 ### Frontend
-- Abrir la URL del frontend
-- Escribir una pregunta de prueba
+- Abrir `https://<url-del-servicio>/`
+- Debe mostrar la landing page de RegBot
+
+### Estadisticas
+- `https://<url-del-servicio>/api/admin/stats`
 
 ---
 
-## Paso 8: Ingestar corpus inicial
+## Paso 7: Ingestar corpus inicial
 
-Despues del primer deploy exitoso, ejecutar la ingesta de las leyes prioritarias.
-Opciones:
-
-### Desde Railway (recomendado)
-- Ir al backend > **Settings** > **Cron Jobs** o ejecutar via API:
-```bash
-curl -X POST https://<url-del-backend>/api/admin/reindex
-```
+Despues del primer deploy exitoso, ejecutar la ingesta:
 
 ### Desde local contra la DB de Railway
 ```bash
@@ -142,20 +100,26 @@ pip install -r requirements.txt
 python scripts/bootstrap_corpus.py
 ```
 
+### Via API
+```bash
+curl -X POST https://<url-del-servicio>/api/admin/reindex
+```
+
 ---
 
 ## Troubleshooting
 
 ### "No start command detected"
-El Dockerfile debe estar en la RAIZ del repo, no en `backend/`. Ver `docs/ERRORES.md` ERR-001.
+El `railway.toml` en la raiz debe tener `builder = "DOCKERFILE"`. Ver `docs/ERRORES.md` ERR-001.
 
 ### Backend arranca pero DB no conecta
-Verificar que `DATABASE_URL` esta vinculada correctamente en Variables. Railway debe mostrarla como referencia al servicio PostgreSQL.
+Verificar que `DATABASE_URL` esta vinculada correctamente en Variables.
 
-### pgvector no funciona
-Ejecutar `CREATE EXTENSION IF NOT EXISTS vector;` en la DB. Sin esto, los embeddings no se pueden almacenar.
+### Frontend muestra "Frontend no disponible"
+Next.js puede tardar unos segundos en levantar. El `start.sh` espera hasta 30s. Si persiste, revisar logs del contenedor.
 
-### Frontend no conecta con backend
-- Verificar que `NEXT_PUBLIC_API_URL` apunta a la URL publica del backend (con `https://`)
-- Verificar que el backend tiene CORS configurado para `*.railway.app`
-- Para comunicacion interna, usar `BACKEND_INTERNAL_URL` con la URL `*.railway.internal`
+### Build falla en COPY public
+Asegurarse de que `frontend/public/` existe (debe tener al menos `.gitkeep`). Ver ERR-004.
+
+### Build falla en npm ci
+Asegurarse de que `frontend/package-lock.json` esta commiteado. Ver ERR-006.

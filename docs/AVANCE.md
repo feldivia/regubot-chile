@@ -12,14 +12,15 @@ Ultima actualizacion: 2026-04-26
 
 ### Fase 0 - Setup
 - [x] Estructura monorepo (backend/ + frontend/)
-- [x] docker-compose.yml para dev local (PostgreSQL + pgvector, Redis)
+- [x] docker-compose.yml para dev local (PostgreSQL, Redis)
 - [x] .env.example con todas las variables
 - [x] pyproject.toml y requirements.txt
 - [x] .gitignore
-- [x] Dockerfile raíz para deploy Railway
-- [x] Dockerfiles individuales (backend, frontend)
-- [x] railway.toml para backend y frontend
+- [x] Dockerfile raiz para deploy Railway (servicio unico backend+frontend)
+- [x] Dockerfiles individuales (backend, frontend) para deploy en 2 servicios
+- [x] railway.toml en raiz + por servicio
 - [x] Repo en GitHub: github.com/feldivia/regubot-chile
+- [x] Frontend: package-lock.json, public/, next-env.d.ts
 
 ### Fase 1 - Ingesta (codigo creado, sin probar)
 - [x] Clase base Scraper abstracta
@@ -33,7 +34,7 @@ Ultima actualizacion: 2026-04-26
 ### Fase 2 - Orquestador RAG + Claude (codigo creado, sin probar)
 - [x] Intent classifier (heuristicas por keywords)
 - [x] Query planner
-- [x] Retriever hibrido (vectorial pgvector + keyword con RRF)
+- [x] Retriever hibrido (vectorial JSONB + keyword con RRF)
 - [x] Generator con Claude Haiku 4.5 + tool use
 - [x] Verificador anti-alucinacion
 - [x] Formateador con tarjetas de trazabilidad
@@ -50,7 +51,7 @@ Ultima actualizacion: 2026-04-26
 - [x] Tools expuestos a Claude via tool use
 - [x] Jobs programados (refresh horario, reindex diario)
 
-### Frontend (codigo creado, sin probar)
+### Frontend (codigo creado, compila correctamente)
 - [x] Next.js 14 App Router + TypeScript + Tailwind
 - [x] Chat UI con streaming SSE
 - [x] Componente Message con avatar
@@ -59,6 +60,7 @@ Ultima actualizacion: 2026-04-26
 - [x] Disclaimer persistente
 - [x] Landing con sugerencias
 - [x] Proxy API route
+- [x] Build exitoso con `next build`
 
 ### Prompts y documentacion
 - [x] system.md, intent.md, verifier.md, formatter.md
@@ -71,19 +73,28 @@ Ultima actualizacion: 2026-04-26
 - [x] LLM: Claude Haiku 4.5 (economico)
 - [x] BCCh API: opcional (no bloquea si no hay credenciales)
 - [x] Redis: opcional (funciona sin el)
+- [x] Embeddings almacenados como JSONB (no requiere pgvector)
+
+### Errores de deploy resueltos
+- [x] ERR-001: Railway Railpack no detecta start command -> Dockerfile en raiz
+- [x] ERR-002: DATABASE_URL incompatible con asyncpg -> conversion automatica en session.py
+- [x] ERR-003: pgvector no disponible -> eliminado, usando JSONB
+- [x] ERR-004: Docker COPY con sintaxis shell -> COPY directo, public/ creado
+- [x] ERR-005: CMD exec form no expande variables -> shell form
+- [x] ERR-006: Faltaba package-lock.json -> generado
+- [x] ERR-007: TypeScript error en LiveDataBadge -> tipos alineados
+- [x] ERR-008: Sin railway.toml en raiz -> creado
 
 ---
 
 ## Pendiente
 
-### Deploy Railway (EN PROGRESO)
-- [x] Dockerfile en raiz del repo
-- [ ] Primer deploy exitoso del backend
-- [ ] Habilitar extension pgvector en PostgreSQL de Railway (`CREATE EXTENSION vector`)
-- [ ] Deploy del frontend
+### Deploy Railway
+- [x] Dockerfile en raiz del repo (corregido, funcional)
+- [x] railway.toml en raiz con builder DOCKERFILE
+- [ ] Primer deploy exitoso (push hecho, pendiente verificar en Railway)
 - [ ] Configurar variables de entorno en Railway (ANTHROPIC_API_KEY, OPENAI_API_KEY, DATABASE_URL)
-- [ ] Configurar NEXT_PUBLIC_API_URL en frontend apuntando al backend
-- [ ] Verificar health check funciona
+- [ ] Verificar health check funciona (`/health`)
 
 ### Validacion funcional
 - [ ] Probar ingesta de al menos 3 leyes con bootstrap_corpus.py
@@ -119,3 +130,5 @@ Ultima actualizacion: 2026-04-26
 | 2026-04-26 | BCCh API opcional | Dejado fuera de esta etapa |
 | 2026-04-26 | Redis opcional | Funciona sin el, reduce costos Railway |
 | 2026-04-26 | Dockerfile en raiz | Railway Railpack no detectaba start command en monorepo |
+| 2026-04-26 | JSONB en vez de pgvector | PostgreSQL de Railway no tiene pgvector; JSONB es portable |
+| 2026-04-26 | Servicio unico (backend+frontend) | Mas simple para Railway, un solo contenedor con start.sh |

@@ -67,6 +67,92 @@ CREATE TABLE chunk (... embedding VECTOR(3072) ...)
 
 ---
 
+## ERR-004: Dockerfile COPY no soporta sintaxis shell
+
+**Fecha:** 2026-04-26
+**Contexto:** Build del Dockerfile raiz y de frontend/Dockerfile en Railway.
+**Error:**
+```
+COPY --from=frontend-builder /app/public ./public 2>/dev/null || true
+```
+El build falla porque Docker COPY no es un comando shell: no entiende `2>/dev/null` ni `|| true`. Interpreta esos tokens como paths adicionales a copiar, que no existen.
+
+**Causa raiz:** Se intento usar una tecnica de "ignorar error" comun en shell (`|| true`), pero COPY es una instruccion nativa de Docker que no pasa por shell. Solo RUN ejecuta en shell.
+
+**Solucion:** Crear el directorio `frontend/public/` con un `.gitkeep` para que siempre exista, y usar COPY directo sin trucos shell.
+
+**Archivos afectados:** `Dockerfile`, `frontend/Dockerfile`, `backend/Dockerfile`
+
+---
+
+## ERR-005: CMD en exec form no expande variables de entorno
+
+**Fecha:** 2026-04-26
+**Contexto:** `backend/Dockerfile`
+**Error:**
+```dockerfile
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "${PORT:-8000}"]
+```
+Uvicorn recibe literalmente la string `${PORT:-8000}` como numero de puerto, no el valor de la variable.
+
+**Causa raiz:** En Docker, la exec form (JSON array) no pasa por shell, asi que las variables `${VAR}` no se expanden. Solo la shell form (`CMD comando args`) las expande.
+
+**Solucion:** Cambiar a shell form: `CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}`
+
+**Archivo:** `backend/Dockerfile`
+
+---
+
+## ERR-006: Frontend sin package-lock.json
+
+**Fecha:** 2026-04-26
+**Contexto:** Build del frontend en Docker.
+**Error:**
+```
+npm ci
+npm ERR! The `npm ci` command can only install with an existing package-lock.json
+```
+
+**Causa raiz:** El frontend se creo sin ejecutar `npm install` localmente, por lo que nunca se genero `package-lock.json`. `npm ci` (usado en Docker para builds reproducibles) lo requiere obligatoriamente.
+
+**Solucion:** Ejecutar `npm install` en `frontend/` para generar `package-lock.json` y commitearlo al repo.
+
+**Archivo:** `frontend/package-lock.json`
+
+---
+
+## ERR-007: Error TypeScript en LiveDataBadge - tipo DatoVivo no asignable
+
+**Fecha:** 2026-04-26
+**Contexto:** Build del frontend con `next build`.
+**Error:**
+```
+Type error: Type 'DatoVivo' is not assignable to type '{ [key: string]: unknown; ... }'.
+Index signature for type 'string' is missing in type 'DatoVivo'.
+```
+
+**Causa raiz:** El componente LiveDataBadge definia su prop `dato` con un tipo inline con index signature `[key: string]: unknown`, pero el componente padre le pasaba un `DatoVivo` (interfaz sin index signature). TypeScript strict no permite esa asignacion.
+
+**Solucion:** Cambiar la prop de LiveDataBadge para usar directamente el tipo `DatoVivo` importado de `@/lib/api`.
+
+**Archivos:** `frontend/components/LiveDataBadge.tsx`, `frontend/components/Chat.tsx`
+
+---
+
+## ERR-008: No existia railway.toml en la raiz del repo
+
+**Fecha:** 2026-04-26
+**Contexto:** Deploy en Railway como servicio unico.
+**Error:** Railway no sabia que builder usar. Railpack intentaba auto-detectar Python/Node pero fallaba por la estructura monorepo.
+
+**Causa raiz:** Solo existian `backend/railway.toml` y `frontend/railway.toml`, pero ningun `railway.toml` en la raiz. Railway lee la config desde la raiz del repo (o Root Directory si esta configurado).
+
+**Solucion:** Crear `railway.toml` en la raiz con `builder = "DOCKERFILE"` apuntando al Dockerfile raiz.
+
+**Archivo:** `railway.toml`
+
+---
+
 ## Plantilla para nuevos errores
 
 ```
