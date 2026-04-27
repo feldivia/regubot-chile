@@ -157,21 +157,23 @@ python scripts/seed_demo.py
 regubot-chile/
 ├── backend/
 │   ├── app/
-│   │   ├── api/            # Endpoints (chat, health, admin)
-│   │   ├── orchestrator/   # Intent, planner, retriever, generator, verifier
-│   │   ├── ingestion/      # Scrapers, parser, chunker
-│   │   ├── models/         # SQLAlchemy models (norma, articulo, chunk)
-│   │   ├── prompts/        # Prompts del sistema en .md
-│   │   └── utils/          # Claude client, embeddings, cache
-│   ├── scripts/            # seed_demo.py, bootstrap_corpus.py
+│   │   ├── api/            # Endpoints: chat (SSE), health, admin (stats)
+│   │   ├── orchestrator/   # Intent → Planner → Retriever → Generator → Verifier
+│   │   ├── ingestion/      # Scrapers, parser, chunker (para futuro uso)
+│   │   ├── models/         # SQLAlchemy: norma, articulo, chunk, query_log
+│   │   ├── prompts/        # system.md (prompt del LLM)
+│   │   └── utils/          # Claude client, embeddings OpenAI, cache
+│   ├── scripts/
+│   │   └── seed_demo.py    # Seed de datos: 5 leyes, 17 artículos
 │   └── tests/
 ├── frontend/
-│   ├── app/                # Next.js App Router
-│   ├── components/         # Chat, Message, CitasPanel, etc.
-│   └── lib/                # API client
-├── docs/                   # Arquitectura, errores, datos disponibles
+│   ├── app/                # Next.js 14 App Router + proxy API
+│   ├── components/         # Chat, Message, CitasPanel (acordeón)
+│   └── lib/                # Tipos e interfaces (Cita, DatoVivo)
+├── docs/                   # DATOS_DISPONIBLES, ERRORES, AVANCE, ARCHITECTURE
 ├── Dockerfile              # Build unificado (backend + frontend)
-├── start.sh                # Script de inicio del contenedor
+├── start.sh                # Inicia Next.js + Uvicorn en un contenedor
+├── setup-railway.sh        # Script automatizado de deploy
 └── docker-compose.yml      # PostgreSQL + Redis para dev local
 ```
 
@@ -193,11 +195,12 @@ Ver detalle completo en [`docs/DATOS_DISPONIBLES.md`](docs/DATOS_DISPONIBLES.md)
 
 | Documento | Contenido |
 |-----------|-----------|
-| [`docs/DATOS_DISPONIBLES.md`](docs/DATOS_DISPONIBLES.md) | Leyes y artículos en la base de datos |
+| [`docs/DATOS_DISPONIBLES.md`](docs/DATOS_DISPONIBLES.md) | Qué leyes y artículos tiene el chatbot |
+| [`docs/ERRORES.md`](docs/ERRORES.md) | 12 errores resueltos con soluciones |
 | [`docs/AVANCE.md`](docs/AVANCE.md) | Estado del proyecto y pendientes |
-| [`docs/ERRORES.md`](docs/ERRORES.md) | Registro de errores y soluciones |
-| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Arquitectura técnica |
-| [`docs/DECISIONS.md`](docs/DECISIONS.md) | Decisiones de diseño |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Arquitectura técnica (RAG pipeline) |
+| [`docs/DECISIONS.md`](docs/DECISIONS.md) | Decisiones de diseño y trade-offs |
+| [`docs/LEGAL.md`](docs/LEGAL.md) | Disclaimer y política legal |
 
 ## Tests
 

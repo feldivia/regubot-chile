@@ -105,7 +105,16 @@ La app esta deployada en Railway y la base de datos esta poblada con datos de se
 
 | Archivo | Razon |
 |---------|-------|
-| backend/Dockerfile | No se usa, deploy usa Dockerfile raiz |
-| backend/railway.toml | No se usa, Railway lee el de la raiz |
-| frontend/Dockerfile | No se usa, frontend se build en Dockerfile raiz |
+| backend/Dockerfile | Deploy usa Dockerfile raiz |
+| backend/railway.toml | Railway lee el de la raiz |
+| frontend/Dockerfile | Frontend se build en Dockerfile raiz |
 | frontend/railway.toml | No se usa |
+| backend/nixpacks.toml | Railway usa Dockerfile, no Nixpacks |
+| backend/Procfile | Railway usa Dockerfile |
+| backend/scripts/bootstrap_corpus.py | Scraper BCN no funciona, reemplazado por seed_demo.py |
+| backend/scripts/eval_qa.py | Dependia de golden_qa.jsonl eliminado |
+| backend/jobs/ | Scheduler, refresh, reindex — dependen de APIs no configuradas |
+| data/golden_qa.jsonl | Preguntas sobre datos no disponibles |
+| docs/DEPLOY_RAILWAY.md | Info movida al README |
+| docs/SOURCES.md | Info real esta en DATOS_DISPONIBLES.md |
+| frontend/components/CitationCard.tsx | Reemplazado por CitasPanel con acordeon |
