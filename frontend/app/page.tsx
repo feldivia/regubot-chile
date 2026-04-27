@@ -158,7 +158,7 @@ export default function Home() {
 
 const SUGERENCIAS = [
   '¿Qué derechos tengo como consumidor?',
-  '¿Cuál es la tasa máxima de interés que me pueden cobrar?',
-  '¿Qué es la Ley Fintec y cómo funcionan las finanzas abiertas?',
-  '¿Qué cláusulas son abusivas en un contrato?',
+  '¿Qué cláusulas son abusivas en un contrato de adhesión?',
+  '¿Qué es la Ley Fintec y el sistema de finanzas abiertas?',
+  '¿Qué es información privilegiada en el mercado de valores?',
 ]

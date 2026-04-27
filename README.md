@@ -87,13 +87,18 @@ npm run dev
 ### Opción A: Desde el dashboard (manual)
 
 1. **Crear proyecto** en [railway.app](https://railway.app)
-2. **Agregar PostgreSQL:** New → Database → PostgreSQL
-3. **Agregar servicio:** New → GitHub Repo → seleccionar `regubot-chile`
-4. **Configurar variables de entorno** en el servicio:
+2. **Agregar PostgreSQL con pgvector:**
+   - Ir al [template pgvector](https://railway.com/template/pgvector) → "Deploy Now"
+   - O desde el proyecto: New → Database → PostgreSQL (funciona también, ReguBot usa JSONB)
+   - Railway provee `DATABASE_URL` automáticamente
+3. **Agregar servicio desde GitHub:**
+   - New → GitHub Repo → seleccionar `regubot-chile`
+   - Railway detecta el `Dockerfile` en la raíz y construye automáticamente
+4. **Configurar variables de entorno** en el servicio de la app (no la DB):
    - `ANTHROPIC_API_KEY` — tu API key de Anthropic
    - `OPENAI_API_KEY` — tu API key de OpenAI
-   - `DATABASE_URL` — se conecta automáticamente al PostgreSQL
-5. **Esperar deploy** — Railway detecta el Dockerfile y construye automáticamente
+   - `DATABASE_URL` — Railway la referencia automáticamente si la DB está en el mismo proyecto
+5. **Esperar deploy** (~3-5 minutos)
 6. **Poblar datos:** ejecutar el seed (ver sección siguiente)
 
 ### Opción B: Con Railway CLI (automatizado)
@@ -114,26 +119,19 @@ Ejecutar el script de setup:
 O paso a paso:
 
 ```bash
-# Crear proyecto
+# Crear proyecto y vincular
 railway init --name regubot-chile
+railway link --project regubot-chile
 
-# Agregar PostgreSQL
-railway add --plugin postgresql
-
-# Vincular al proyecto
-railway link
+# Agregar PostgreSQL (estándar, funciona con JSONB)
+railway add --database postgres --service pgvector
 
 # Configurar variables de entorno
-railway variables set ANTHROPIC_API_KEY=sk-ant-...
-railway variables set OPENAI_API_KEY=sk-proj-...
+railway variable set ANTHROPIC_API_KEY=sk-ant-...
+railway variable set OPENAI_API_KEY=sk-proj-...
 
 # Deploy
-railway up
-
-# Poblar la base de datos (requiere URL pública de PostgreSQL)
-# Habilitar "Public Networking" en el servicio PostgreSQL desde el dashboard
-# Luego:
-railway run --service <nombre-servicio> python backend/scripts/seed_demo.py
+railway up --detach
 ```
 
 ### Poblar la base de datos en Railway
