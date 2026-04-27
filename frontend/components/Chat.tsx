@@ -37,6 +37,16 @@ export default function Chat({ preguntaInicial, onCitasUpdate }: ChatProps) {
   const enviarPregunta = useCallback(async (pregunta: string) => {
     if (!pregunta.trim() || isLoading) return
 
+    // Validación client-side
+    const palabras = pregunta.trim().split(/\s+/)
+    if (palabras.length > 30) {
+      setMessages((prev) => [...prev,
+        { role: 'user', content: pregunta.trim() },
+        { role: 'assistant', content: 'Tu pregunta es demasiado larga. Máximo 30 palabras.' },
+      ])
+      return
+    }
+
     setInput('')
     setIsLoading(true)
 
