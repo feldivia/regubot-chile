@@ -8,13 +8,19 @@ import { type Cita, type DatoVivo } from '@/lib/api'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || ''
 
-export default function Chat() {
+interface ChatProps {
+  preguntaInicial?: string
+  onCitasUpdate?: (citas: Cita[]) => void
+}
+
+export default function Chat({ preguntaInicial, onCitasUpdate }: ChatProps) {
   const [messages, setMessages] = useState<MessageData[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [sessionId] = useState(() => crypto.randomUUID())
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const preguntaInicialEnviada = useRef(false)
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -28,18 +34,15 @@ export default function Chat() {
     inputRef.current?.focus()
   }, [])
 
-  const enviarMensaje = async () => {
-    const pregunta = input.trim()
-    if (!pregunta || isLoading) return
+  const enviarPregunta = useCallback(async (pregunta: string) => {
+    if (!pregunta.trim() || isLoading) return
 
     setInput('')
     setIsLoading(true)
 
-    // Agregar mensaje del usuario
-    const userMsg: MessageData = { role: 'user', content: pregunta }
+    const userMsg: MessageData = { role: 'user', content: pregunta.trim() }
     setMessages((prev) => [...prev, userMsg])
 
-    // Agregar mensaje vacío del bot (para streaming)
     const botMsg: MessageData = {
       role: 'assistant',
       content: '',
@@ -52,7 +55,7 @@ export default function Chat() {
       const response = await fetch(`${API_URL}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pregunta, session_id: sessionId }),
+        body: JSON.stringify({ pregunta: pregunta.trim(), session_id: sessionId }),
       })
 
       if (!response.ok) {
@@ -82,11 +85,12 @@ export default function Chat() {
           if (line.startsWith('event:')) {
             currentEvent = line.slice(6).trim()
           } else if (line.startsWith('data:')) {
-            const data = line.slice(5).trim()
-            if (!data) continue
+            const data = line.slice(5)
+            // SSE spec: data vacío entre data: lines = newline
+            const contenido = data === '' || data === ' ' ? '\n' : data.startsWith(' ') ? data.slice(1) : data
 
             if (currentEvent === 'texto') {
-              textoAcumulado += data
+              textoAcumulado += contenido
               setMessages((prev) => {
                 const updated = [...prev]
                 const last = updated[updated.length - 1]
@@ -97,7 +101,7 @@ export default function Chat() {
               })
             } else if (currentEvent === 'cita') {
               try {
-                const cita = JSON.parse(data.replace(/'/g, '"'))
+                const cita = JSON.parse(contenido.replace(/'/g, '"'))
                 citasAcumuladas.push(cita)
                 setMessages((prev) => {
                   const updated = [...prev]
@@ -107,13 +111,13 @@ export default function Chat() {
                   }
                   return [...updated]
                 })
+                onCitasUpdate?.([...citasAcumuladas])
               } catch {
-                // Cita no parseable, ignorar
+                // Cita no parseable
               }
             } else if (currentEvent === 'dato_vivo') {
               try {
-                const raw = JSON.parse(data.replace(/'/g, '"'))
-                // El backend envia {uf: {tipo, valor, ...}} - extraer el valor interno
+                const raw = JSON.parse(contenido.replace(/'/g, '"'))
                 const keys = Object.keys(raw)
                 if (keys.length === 1 && typeof raw[keys[0]] === 'object') {
                   const inner = raw[keys[0]] as DatoVivo
@@ -131,7 +135,7 @@ export default function Chat() {
                 // Dato no parseable
               }
             } else if (currentEvent === 'error') {
-              textoAcumulado += `\n\nError: ${data}`
+              textoAcumulado += `\n\nError: ${contenido}`
               setMessages((prev) => {
                 const updated = [...prev]
                 const last = updated[updated.length - 1]
@@ -144,7 +148,7 @@ export default function Chat() {
           }
         }
       }
-    } catch (error) {
+    } catch {
       setMessages((prev) => {
         const updated = [...prev]
         const last = updated[updated.length - 1]
@@ -157,17 +161,29 @@ export default function Chat() {
     } finally {
       setIsLoading(false)
     }
+  }, [isLoading, sessionId, onCitasUpdate])
+
+  // Enviar pregunta inicial automáticamente
+  useEffect(() => {
+    if (preguntaInicial && !preguntaInicialEnviada.current) {
+      preguntaInicialEnviada.current = true
+      enviarPregunta(preguntaInicial)
+    }
+  }, [preguntaInicial, enviarPregunta])
+
+  const handleSubmit = () => {
+    enviarPregunta(input)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
-      enviarMensaje()
+      handleSubmit()
     }
   }
 
   return (
-    <div className="flex-1 flex flex-col">
+    <div className="flex-1 flex flex-col min-h-0">
       {/* Mensajes */}
       <div className="flex-1 overflow-y-auto chat-scroll px-4 py-4 space-y-4">
         {messages.length === 0 && (
@@ -212,7 +228,7 @@ export default function Chat() {
             disabled={isLoading}
           />
           <button
-            onClick={enviarMensaje}
+            onClick={handleSubmit}
             disabled={!input.trim() || isLoading}
             className="bg-primary-600 text-white p-3 rounded-xl hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >

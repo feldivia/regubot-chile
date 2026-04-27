@@ -3,7 +3,6 @@
 import { Bot, User } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import CitationCard from './CitationCard'
 import LiveDataBadge from './LiveDataBadge'
 import { type Cita, type DatoVivo } from '@/lib/api'
 
@@ -29,7 +28,7 @@ export default function Message({ message, isStreaming }: Props) {
 
   return (
     <div className={`flex gap-3 ${isUser ? 'justify-end' : 'justify-start'}`}>
-      {/* Avatar bot (izquierda) */}
+      {/* Avatar bot */}
       {!isUser && (
         <div className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-gray-200 text-gray-600 mt-1">
           <Bot size={16} />
@@ -60,18 +59,18 @@ export default function Message({ message, isStreaming }: Props) {
           </div>
         )}
 
-        {/* Citas */}
-        {message.citas && message.citas.length > 0 && (
-          <div className="space-y-2 w-full">
-            <p className="text-xs text-gray-500 font-medium mt-1">Fuentes consultadas:</p>
-            {message.citas.map((cita, i) => (
-              <CitationCard key={i} cita={cita} />
-            ))}
+        {/* Indicador de citas (sin tarjetas, van al panel) */}
+        {!isStreaming && message.citas && message.citas.length > 0 && (
+          <div className="flex items-center gap-1.5 text-xs text-primary-600">
+            <span className="font-medium">
+              {message.citas.length} fuente{message.citas.length > 1 ? 's' : ''} citada{message.citas.length > 1 ? 's' : ''}
+            </span>
+            <span className="text-gray-400">— ver panel de fuentes</span>
           </div>
         )}
       </div>
 
-      {/* Avatar usuario (derecha) */}
+      {/* Avatar usuario */}
       {isUser && (
         <div className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-primary-600 text-white mt-1">
           <User size={16} />
