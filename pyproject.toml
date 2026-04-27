@@ -1,5 +1,5 @@
 [project]
-name = "regbot-chile"
+name = "regubot-chile"
 version = "0.1.0"
 description = "Chatbot de regulación financiera chilena con IA"
 requires-python = ">=3.11"
