@@ -49,8 +49,8 @@ def planificar_consulta(pregunta: str, intencion: Intencion) -> PlanConsulta:
             consultar_rag=False,
             respuesta_directa=(
                 "¡Hola! Soy ReguBot, tu asistente de regulación financiera chilena. "
-                "Puedo ayudarte con preguntas sobre leyes financieras, derechos del consumidor, "
-                "créditos, tasas de interés, pensiones, y más. ¿En qué puedo ayudarte?"
+                "Puedo ayudarte con preguntas sobre derechos del consumidor, tasas de interés, "
+                "Ley Fintec, mercado de valores y sistemas de pago. ¿En qué puedo ayudarte?"
             ),
         )
 

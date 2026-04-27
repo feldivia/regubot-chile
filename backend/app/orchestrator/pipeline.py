@@ -51,13 +51,14 @@ async def ejecutar_consulta(
         except Exception as e:
             logger.warning("Error en retrieval: %s", e)
 
-    if plan.consultar_datos_vivos:
-        try:
-            datos_vivos = await obtener_multiples_datos(plan.datos_vivos_requeridos)
-            for tipo, dato in datos_vivos.items():
-                yield {"tipo": "dato_vivo", "contenido": {tipo: dato}}
-        except Exception as e:
-            logger.warning("Error obteniendo datos vivos: %s", e)
+    # Datos en vivo deshabilitados: requieren credenciales BCCh no configuradas
+    # if plan.consultar_datos_vivos:
+    #     try:
+    #         datos_vivos = await obtener_multiples_datos(plan.datos_vivos_requeridos)
+    #         for tipo, dato in datos_vivos.items():
+    #             yield {"tipo": "dato_vivo", "contenido": {tipo: dato}}
+    #     except Exception as e:
+    #         logger.warning("Error obteniendo datos vivos: %s", e)
 
     # 4. Generar respuesta con Claude
     respuesta_completa = ""

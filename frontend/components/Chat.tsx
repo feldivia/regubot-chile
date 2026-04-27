@@ -227,7 +227,7 @@ export default function Chat({ preguntaInicial, onCitasUpdate }: ChatProps) {
       </div>
 
       {/* Input */}
-      <div className="p-4 border-t border-gray-200 bg-white">
+      <div className="p-4 border-t border-slate-200/60 bg-white/80 backdrop-blur-md">
         <div className="max-w-2xl mx-auto flex gap-2">
           <input
             ref={inputRef}
@@ -236,13 +236,13 @@ export default function Chat({ preguntaInicial, onCitasUpdate }: ChatProps) {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Pregunta sobre regulación financiera..."
-            className="flex-1 px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            className="flex-1 px-4 py-3 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-400 transition-all placeholder:text-slate-400"
             disabled={isLoading}
           />
           <button
             onClick={handleSubmit}
             disabled={!input.trim() || isLoading}
-            className="bg-primary-600 text-white p-3 rounded-xl hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="bg-gradient-to-r from-primary-600 to-primary-700 text-white p-3 rounded-xl hover:from-primary-700 hover:to-primary-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm shadow-primary-500/20"
           >
             {isLoading ? (
               <Loader2 size={20} className="animate-spin" />

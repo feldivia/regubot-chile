@@ -30,7 +30,7 @@ export default function Message({ message, isStreaming }: Props) {
     <div className={`flex gap-3 ${isUser ? 'justify-end' : 'justify-start'}`}>
       {/* Avatar bot */}
       {!isUser && (
-        <div className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-gray-200 text-gray-600 mt-1">
+        <div className="shrink-0 w-8 h-8 rounded-xl flex items-center justify-center bg-gradient-to-br from-primary-100 to-primary-200 text-primary-700 mt-1">
           <Bot size={16} />
         </div>
       )}
@@ -61,18 +61,18 @@ export default function Message({ message, isStreaming }: Props) {
 
         {/* Indicador de citas (sin tarjetas, van al panel) */}
         {!isStreaming && message.citas && message.citas.length > 0 && (
-          <div className="flex items-center gap-1.5 text-xs text-primary-600">
-            <span className="font-medium">
+          <div className="flex items-center gap-1.5 text-xs">
+            <span className="font-medium text-primary-600">
               {message.citas.length} fuente{message.citas.length > 1 ? 's' : ''} citada{message.citas.length > 1 ? 's' : ''}
             </span>
-            <span className="text-gray-400">— ver panel de fuentes</span>
+            <span className="text-slate-400 hidden sm:inline">— ver panel lateral</span>
           </div>
         )}
       </div>
 
       {/* Avatar usuario */}
       {isUser && (
-        <div className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-primary-600 text-white mt-1">
+        <div className="shrink-0 w-8 h-8 rounded-xl flex items-center justify-center bg-gradient-to-br from-primary-600 to-primary-700 text-white mt-1 shadow-sm shadow-primary-500/20">
           <User size={16} />
         </div>
       )}

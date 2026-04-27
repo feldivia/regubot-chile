@@ -50,6 +50,7 @@ def formatear_respuesta(
                 "path": cita.get("articulo_path", ""),
                 "url": cita.get("url_oficial", ""),
                 "organismo": cita.get("organismo", ""),
+                "texto": cita.get("texto", ""),
             })
             return f" [{num}]"
         return ""

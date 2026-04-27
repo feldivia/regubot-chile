@@ -13,6 +13,7 @@ export interface Cita {
   path: string
   url: string
   organismo: string
+  texto?: string
 }
 
 export interface DatoVivo {

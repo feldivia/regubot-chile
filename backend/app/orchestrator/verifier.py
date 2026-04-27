@@ -117,6 +117,7 @@ async def _verificar_cita(articulo_id: str, db: AsyncSession) -> dict:
             "articulo_path": articulo.path,
             "url_oficial": norma.url_oficial,
             "organismo": norma.organismo,
+            "texto": articulo.texto,
         }
 
     except Exception as e:

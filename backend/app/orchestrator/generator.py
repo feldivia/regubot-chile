@@ -148,7 +148,8 @@ async def generar_respuesta(
             max_tokens=4096,
             system=system_prompt,
             messages=mensajes,
-            tools=TOOLS_DATOS_VIVOS,
+            # Tools deshabilitados: datos en vivo requieren credenciales BCCh no configuradas
+            # tools=TOOLS_DATOS_VIVOS,
         ) as stream:
             tool_name = None
             tool_input_json = ""
