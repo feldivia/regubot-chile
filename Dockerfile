@@ -5,7 +5,6 @@ COPY frontend/package*.json ./
 RUN npm ci
 COPY frontend/ .
 ENV NEXT_TELEMETRY_DISABLED=1
-# La API corre en el mismo host, el frontend la accede via /api
 ENV NEXT_PUBLIC_API_URL=""
 RUN npm run build
 
@@ -30,7 +29,7 @@ COPY backend/ .
 WORKDIR /app/frontend
 COPY --from=frontend-builder /app/.next/standalone ./
 COPY --from=frontend-builder /app/.next/static ./.next/static
-COPY --from=frontend-builder /app/public ./public 2>/dev/null || true
+COPY --from=frontend-builder /app/public ./public
 
 # Script de inicio
 WORKDIR /app

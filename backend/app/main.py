@@ -1,12 +1,13 @@
 """Entrypoint de la aplicación FastAPI."""
 
 import logging
+import os
 from contextlib import asynccontextmanager
 
 import httpx
 import sentry_sdk
 from fastapi import FastAPI, Request
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.admin import router as admin_router
@@ -16,7 +17,7 @@ from app.config import settings
 from app.db.session import engine
 from app.models.base import Base
 
-FRONTEND_URL = "http://127.0.0.1:3000"
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://127.0.0.1:3000")
 
 logger = logging.getLogger(__name__)
 
@@ -76,30 +77,21 @@ app.include_router(admin_router, prefix="/api/admin")
 @app.api_route("/{path:path}", methods=["GET", "HEAD"])
 async def frontend_proxy(request: Request, path: str):
     url = f"{FRONTEND_URL}/{path}"
-    async with httpx.AsyncClient() as client:
-        proxy_resp = await client.get(
-            url,
-            headers={k: v for k, v in request.headers.items() if k.lower() != "host"},
-            params=request.query_params,
-            follow_redirects=True,
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            proxy_resp = await client.get(
+                url,
+                headers={k: v for k, v in request.headers.items() if k.lower() != "host"},
+                params=request.query_params,
+                follow_redirects=True,
+            )
+        return StreamingResponse(
+            iter([proxy_resp.content]),
+            status_code=proxy_resp.status_code,
+            headers=dict(proxy_resp.headers),
         )
-    return StreamingResponse(
-        iter([proxy_resp.content]),
-        status_code=proxy_resp.status_code,
-        headers=dict(proxy_resp.headers),
-    )
-
-
-@app.get("/")
-async def root_proxy(request: Request):
-    async with httpx.AsyncClient() as client:
-        proxy_resp = await client.get(
-            FRONTEND_URL,
-            headers={k: v for k, v in request.headers.items() if k.lower() != "host"},
-            follow_redirects=True,
+    except httpx.ConnectError:
+        return JSONResponse(
+            {"error": "Frontend no disponible"},
+            status_code=502,
         )
-    return StreamingResponse(
-        iter([proxy_resp.content]),
-        status_code=proxy_resp.status_code,
-        headers=dict(proxy_resp.headers),
-    )

@@ -112,8 +112,13 @@ export default function Chat() {
               }
             } else if (currentEvent === 'dato_vivo') {
               try {
-                const dato = JSON.parse(data.replace(/'/g, '"'))
-                datosVivosAcumulados.push(dato)
+                const raw = JSON.parse(data.replace(/'/g, '"'))
+                // El backend envia {uf: {tipo, valor, ...}} - extraer el valor interno
+                const keys = Object.keys(raw)
+                if (keys.length === 1 && typeof raw[keys[0]] === 'object') {
+                  const inner = raw[keys[0]] as DatoVivo
+                  if (inner.valor) datosVivosAcumulados.push(inner)
+                }
                 setMessages((prev) => {
                   const updated = [...prev]
                   const last = updated[updated.length - 1]

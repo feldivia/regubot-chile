@@ -1,15 +1,10 @@
 'use client'
 
 import { TrendingUp } from 'lucide-react'
+import { type DatoVivo } from '@/lib/api'
 
 interface Props {
-  dato: {
-    tipo?: string
-    valor?: string
-    fecha?: string
-    fuente?: string
-    [key: string]: unknown
-  }
+  dato: DatoVivo
 }
 
 const ETIQUETAS: Record<string, string> = {
@@ -24,18 +19,12 @@ const ETIQUETAS: Record<string, string> = {
 
 export default function LiveDataBadge({ dato }: Props) {
   // El dato puede venir anidado (ej: {uf: {tipo, valor, ...}})
-  let datoReal = dato
-  const keys = Object.keys(dato)
-  if (keys.length === 1 && typeof dato[keys[0]] === 'object') {
-    datoReal = dato[keys[0]] as typeof dato
-  }
-
-  const tipo = datoReal.tipo || keys[0] || 'dato'
-  const valor = datoReal.valor || 'N/D'
-  const fecha = datoReal.fecha || ''
+  const tipo = dato.tipo || 'dato'
+  const valor = dato.valor || 'N/D'
+  const fecha = dato.fecha || ''
   const etiqueta = ETIQUETAS[tipo] || tipo.toUpperCase()
 
-  if (datoReal.error) return null
+  if (!dato.valor) return null
 
   return (
     <div className="inline-flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-1.5 text-sm">
