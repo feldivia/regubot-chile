@@ -1,118 +1,205 @@
 # ReguBot Chile
 
-Chatbot con IA que convierte la regulación financiera chilena en respuestas que cualquier persona puede entender, verificadas en tiempo real contra datos oficiales.
+Chatbot con IA que explica la regulación financiera chilena en lenguaje simple, con citas verificadas a fuentes oficiales.
+
+**Demo:** https://regubot-chile-production.up.railway.app/
 
 ## Stack
 
-- **Frontend:** Next.js 14 + TypeScript + Tailwind CSS
-- **Backend:** FastAPI (Python 3.11+)
-- **LLM:** Claude (Anthropic) con tool use
-- **Vector store:** PostgreSQL + pgvector
-- **Embeddings:** OpenAI (text-embedding-3-large)
-- **Cache:** Redis (opcional)
-- **Deploy:** Railway
+| Capa | Tecnología |
+|------|-----------|
+| Frontend | Next.js 14 + TypeScript + Tailwind CSS |
+| Backend | FastAPI (Python 3.11+) |
+| LLM | Claude Haiku 4.5 (Anthropic) con tool use |
+| Embeddings | OpenAI text-embedding-3-large (3072 dims) |
+| Base de datos | PostgreSQL (embeddings como JSONB) |
+| Deploy | Railway (servicio único backend+frontend) |
 
-## Inicio rápido
+## Requisitos previos
+
+- [Node.js](https://nodejs.org/) 20+
+- [Python](https://python.org/) 3.11+
+- API key de [Anthropic](https://console.anthropic.com/) (Claude)
+- API key de [OpenAI](https://platform.openai.com/) (embeddings)
+
+---
+
+## Desarrollo local
 
 ### 1. Clonar y configurar
 
 ```bash
+git clone https://github.com/feldivia/regubot-chile.git
+cd regubot-chile
 cp .env.example .env
-# Editar .env con tus API keys
+# Editar .env con tus API keys (ANTHROPIC_API_KEY, OPENAI_API_KEY)
 ```
 
-### 2. Levantar servicios
+### 2. Levantar base de datos
 
 ```bash
 docker compose up -d
 ```
 
-### 3. Ingestar corpus inicial
+Esto levanta PostgreSQL y Redis (opcional) en local.
 
-```bash
-cd backend
-pip install -r requirements.txt
-python scripts/bootstrap_corpus.py
-```
-
-### 4. Iniciar desarrollo
+### 3. Instalar dependencias
 
 ```bash
 # Backend
 cd backend
-uvicorn app.main:app --reload --port 8000
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+pip install -r requirements.txt
 
 # Frontend (otra terminal)
 cd frontend
 npm install
+```
+
+### 4. Poblar base de datos
+
+```bash
+cd backend
+python scripts/seed_demo.py
+```
+
+Esto inserta 5 leyes chilenas con 17 artículos y genera embeddings con OpenAI.
+
+### 5. Iniciar desarrollo
+
+```bash
+# Backend (terminal 1)
+cd backend
+uvicorn app.main:app --reload --port 8000
+
+# Frontend (terminal 2)
+cd frontend
 npm run dev
 ```
 
-### 5. Abrir http://localhost:3000
+### 6. Abrir http://localhost:3000
 
-## Estructura
-
-```
-regbot-chile/
-├── backend/           # FastAPI + orquestador + ingesta
-│   ├── app/
-│   │   ├── api/       # Endpoints (chat, health, admin)
-│   │   ├── orchestrator/  # Intent, planner, retriever, generator, verifier
-│   │   ├── ingestion/     # Scrapers, parser, chunker
-│   │   ├── models/        # SQLAlchemy models
-│   │   ├── prompts/       # Prompts en .md
-│   │   └── utils/         # Claude client, embeddings, cache
-│   ├── jobs/          # Scheduler, reindex, refresh
-│   ├── tests/         # Tests unitarios y e2e
-│   └── scripts/       # Bootstrap, evaluación
-├── frontend/          # Next.js 14
-│   ├── app/           # App Router pages
-│   ├── components/    # Chat, Message, CitationCard, etc.
-│   └── lib/           # API client
-├── data/              # Golden QA dataset
-└── docs/              # Arquitectura, fuentes, legal
-```
+---
 
 ## Deploy en Railway
 
-### 1. Crear proyecto en Railway
+### Opción A: Desde el dashboard (manual)
 
-Ir a [railway.app](https://railway.app) y crear un nuevo proyecto.
+1. **Crear proyecto** en [railway.app](https://railway.app)
+2. **Agregar PostgreSQL:** New → Database → PostgreSQL
+3. **Agregar servicio:** New → GitHub Repo → seleccionar `regubot-chile`
+4. **Configurar variables de entorno** en el servicio:
+   - `ANTHROPIC_API_KEY` — tu API key de Anthropic
+   - `OPENAI_API_KEY` — tu API key de OpenAI
+   - `DATABASE_URL` — se conecta automáticamente al PostgreSQL
+5. **Esperar deploy** — Railway detecta el Dockerfile y construye automáticamente
+6. **Poblar datos:** ejecutar el seed (ver sección siguiente)
 
-### 2. Agregar PostgreSQL
+### Opción B: Con Railway CLI (automatizado)
 
-- Click "New" > "Database" > "PostgreSQL"
-- Railway provee `DATABASE_URL` automáticamente
+Instalar Railway CLI:
 
-### 3. Desplegar backend
+```bash
+npm install -g @railway/cli
+railway login
+```
 
-- Click "New" > "GitHub Repo" > seleccionar este repo
-- Root Directory: `backend`
-- Variables de entorno requeridas:
-  - `ANTHROPIC_API_KEY`
-  - `OPENAI_API_KEY`
-  - `DATABASE_URL` (se conecta automáticamente al PostgreSQL de Railway)
-- Habilitar extensión pgvector: conectarse a la DB y ejecutar `CREATE EXTENSION IF NOT EXISTS vector;`
+Ejecutar el script de setup:
 
-### 4. Desplegar frontend
+```bash
+./setup-railway.sh
+```
 
-- Click "New" > "GitHub Repo" > seleccionar este repo
-- Root Directory: `frontend`
-- Variables de entorno:
-  - `NEXT_PUBLIC_API_URL` = URL pública del backend (ej: `https://backend-xxx.up.railway.app`)
-  - `BACKEND_INTERNAL_URL` = URL interna del backend (ej: `http://backend.railway.internal:8000`)
+O paso a paso:
 
-### 5. (Opcional) Agregar Redis
+```bash
+# Crear proyecto
+railway init --name regubot-chile
 
-- Click "New" > "Database" > "Redis"
-- Agregar `REDIS_URL` al backend (Railway la provee automáticamente)
+# Agregar PostgreSQL
+railway add --plugin postgresql
 
-### Notas Railway
+# Vincular al proyecto
+railway link
 
-- PostgreSQL de Railway soporta pgvector (ejecutar `CREATE EXTENSION vector` una vez)
-- El backend usa `$PORT` automáticamente (Railway lo inyecta)
-- Redis es opcional: sin él, el cache se desactiva pero todo funciona
-- Las URLs internas (`*.railway.internal`) son gratis y más rápidas entre servicios
+# Configurar variables de entorno
+railway variables set ANTHROPIC_API_KEY=sk-ant-...
+railway variables set OPENAI_API_KEY=sk-proj-...
+
+# Deploy
+railway up
+
+# Poblar la base de datos (requiere URL pública de PostgreSQL)
+# Habilitar "Public Networking" en el servicio PostgreSQL desde el dashboard
+# Luego:
+railway run --service <nombre-servicio> python backend/scripts/seed_demo.py
+```
+
+### Poblar la base de datos en Railway
+
+La forma más simple es ejecutar el seed desde tu máquina conectado a la DB de Railway:
+
+```bash
+# Obtener la URL pública de PostgreSQL desde el dashboard de Railway
+# (Servicio PostgreSQL → Settings → Networking → Public Networking → Enable)
+
+export DATABASE_URL="postgresql://postgres:<password>@<host>:<port>/railway"
+export OPENAI_API_KEY="sk-proj-..."
+
+cd backend
+python scripts/seed_demo.py
+```
+
+---
+
+## Estructura del proyecto
+
+```
+regubot-chile/
+├── backend/
+│   ├── app/
+│   │   ├── api/            # Endpoints (chat, health, admin)
+│   │   ├── orchestrator/   # Intent, planner, retriever, generator, verifier
+│   │   ├── ingestion/      # Scrapers, parser, chunker
+│   │   ├── models/         # SQLAlchemy models (norma, articulo, chunk)
+│   │   ├── prompts/        # Prompts del sistema en .md
+│   │   └── utils/          # Claude client, embeddings, cache
+│   ├── scripts/            # seed_demo.py, bootstrap_corpus.py
+│   └── tests/
+├── frontend/
+│   ├── app/                # Next.js App Router
+│   ├── components/         # Chat, Message, CitasPanel, etc.
+│   └── lib/                # API client
+├── docs/                   # Arquitectura, errores, datos disponibles
+├── Dockerfile              # Build unificado (backend + frontend)
+├── start.sh                # Script de inicio del contenedor
+└── docker-compose.yml      # PostgreSQL + Redis para dev local
+```
+
+## Datos disponibles
+
+El chatbot tiene información de 5 leyes chilenas (17 artículos):
+
+| Ley | Nombre | Artículos |
+|-----|--------|-----------|
+| 19.496 | Protección del Consumidor | 1, 3, 12, 16 |
+| 21.521 | Ley Fintec | 1, 2, 5, 12 |
+| 18.045 | Mercado de Valores | 1, 4, 9, 164, 165 |
+| 18.010 | Operaciones de Crédito | 1, 6, 8 |
+| 20.345 | Sistemas de Pago | 1 |
+
+Ver detalle completo en [`docs/DATOS_DISPONIBLES.md`](docs/DATOS_DISPONIBLES.md).
+
+## Documentación
+
+| Documento | Contenido |
+|-----------|-----------|
+| [`docs/DATOS_DISPONIBLES.md`](docs/DATOS_DISPONIBLES.md) | Leyes y artículos en la base de datos |
+| [`docs/AVANCE.md`](docs/AVANCE.md) | Estado del proyecto y pendientes |
+| [`docs/ERRORES.md`](docs/ERRORES.md) | Registro de errores y soluciones |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Arquitectura técnica |
+| [`docs/DECISIONS.md`](docs/DECISIONS.md) | Decisiones de diseño |
 
 ## Tests
 

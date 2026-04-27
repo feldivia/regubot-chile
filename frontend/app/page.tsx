@@ -49,7 +49,7 @@ export default function Home() {
           {chatIniciado && (
             <button
               onClick={() => setPanelAbierto(!panelAbierto)}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors text-sm text-gray-700"
+              className="lg:hidden flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors text-sm text-gray-700"
             >
               <BookOpen size={16} />
               <span className="hidden sm:inline">Fuentes</span>
@@ -77,10 +77,10 @@ export default function Home() {
                   Pregunta sobre regulación financiera chilena
                 </h2>
                 <p className="text-gray-600 mb-8">
-                  Explico leyes financieras en lenguaje simple, con citas
-                  verificadas a fuentes oficiales. Puedo ayudarte con la Ley del
-                  Consumidor, Ley Fintec, Mercado de Valores, Operaciones de
-                  Crédito y Sistemas de Pago.
+                  Explico leyes financieras chilenas en lenguaje simple, con
+                  citas verificadas. Tengo información sobre derechos del
+                  consumidor, tasas de interés, Ley Fintec, mercado de valores
+                  y sistemas de pago.
                 </p>
 
                 {/* Sugerencias */}
@@ -122,16 +122,22 @@ export default function Home() {
               />
             </div>
 
-            {/* Panel lateral de citas */}
+            {/* Panel lateral de citas - siempre visible en desktop */}
+            <div className="hidden lg:block w-80 shrink-0 bg-gray-50 border-l border-gray-200">
+              <CitasPanel
+                citas={todasLasCitas}
+                onClose={() => {}}
+              />
+            </div>
+
+            {/* Panel mobile - solo con botón */}
             {panelAbierto && (
               <>
-                {/* Overlay mobile */}
                 <div
                   className="fixed inset-0 bg-black/30 z-40 lg:hidden"
                   onClick={() => setPanelAbierto(false)}
                 />
-                {/* Panel */}
-                <div className="fixed right-0 top-0 bottom-0 w-80 bg-gray-50 border-l border-gray-200 z-50 lg:static lg:z-auto lg:w-80 lg:shrink-0">
+                <div className="fixed right-0 top-0 bottom-0 w-80 bg-gray-50 border-l border-gray-200 z-50 lg:hidden">
                   <CitasPanel
                     citas={todasLasCitas}
                     onClose={() => setPanelAbierto(false)}
@@ -149,6 +155,6 @@ export default function Home() {
 const SUGERENCIAS = [
   '¿Qué derechos tengo como consumidor?',
   '¿Cuál es la tasa máxima de interés que me pueden cobrar?',
-  '¿Qué es la Ley Fintec y el sistema de finanzas abiertas?',
-  '¿Qué es información privilegiada en el mercado de valores?',
+  '¿Qué es la Ley Fintec y cómo funcionan las finanzas abiertas?',
+  '¿Qué cláusulas son abusivas en un contrato?',
 ]
