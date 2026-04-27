@@ -56,6 +56,15 @@ La app esta deployada en Railway y la base de datos esta poblada con datos de se
 - [x] Proxy API route (frontend -> backend server-side)
 - [x] Build exitoso con `next build`
 
+### Seguridad
+- [x] Rate limiting por IP (3 consultas/dia, tabla PostgreSQL)
+- [x] Deteccion de prompt injection (regex ES/EN)
+- [x] Validacion de input (max 30 palabras, min 3 chars)
+- [x] Admin endpoints protegidos con Bearer token (ADMIN_TOKEN)
+- [x] CORS restringido a dominio especifico de produccion
+- [x] Errores internos sanitizados (no exponen stack traces)
+- [x] `.claude/` en .gitignore (prevenir leak de credenciales locales)
+
 ### Errores resueltos
 - [x] 12 errores documentados en docs/ERRORES.md (ERR-001 a ERR-012)
 
@@ -79,7 +88,6 @@ La app esta deployada en Railway y la base de datos esta poblada con datos de se
 
 ### Largo plazo
 - [ ] Redis para cache
-- [ ] Rate limiting real
 - [ ] CI/CD
 - [ ] Registrarse en API Banco Central para datos en vivo completos
 - [ ] Observabilidad (Sentry, logs estructurados)

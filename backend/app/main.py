@@ -55,16 +55,21 @@ app = FastAPI(
 )
 
 # CORS para el frontend
+_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "https://regubot-chile-production.up.railway.app",
+]
+# Permitir orígenes adicionales via variable de entorno
+_extra = os.getenv("CORS_EXTRA_ORIGINS", "")
+if _extra:
+    _ALLOWED_ORIGINS.extend(o.strip() for o in _extra.split(",") if o.strip())
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "https://*.up.railway.app",
-        "https://*.railway.app",
-    ],
+    allow_origins=_ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["POST", "GET", "HEAD", "OPTIONS"],
+    allow_headers=["Content-Type"],
 )
 
 # Registrar routers

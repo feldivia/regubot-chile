@@ -26,9 +26,10 @@ ReguBot derivará al usuario a un abogado o SERNAC cuando:
 - La situación sea compleja o personalizada
 
 ### Auditoría
-- Todas las consultas se registran (sin PII) para mejora continua
+- Las consultas se registran para mejora continua (session_id, pregunta, respuesta, latencia)
+- Las direcciones IP se almacenan temporalmente para rate limiting (3 consultas/dia)
+- No se almacenan nombres, correos ni datos de identificacion personal
 - Las citas se verifican automáticamente contra la base de datos
-- Se detectan y reportan citas a normas derogadas
 
 ### Datos en vivo
 - Los valores financieros provienen de fuentes oficiales (BCCh, CMF, SII)

@@ -110,8 +110,8 @@ async def chat(request: Request, body: ChatRequest, db: AsyncSession = Depends(g
             yield {"event": "fin", "data": ""}
 
         except Exception as e:
-            logger.exception("Error procesando consulta")
-            yield {"event": "error", "data": json.dumps(f"Error interno: {e!s}", ensure_ascii=False)}
+            logger.exception("Error procesando consulta: %s", e)
+            yield {"event": "error", "data": json.dumps("Error interno al procesar la consulta. Intenta de nuevo.", ensure_ascii=False)}
 
     return EventSourceResponse(generar_eventos())
 

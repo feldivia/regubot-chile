@@ -1,8 +1,9 @@
 """Endpoints administrativos: reindexación y estadísticas."""
 
 import logging
+import os
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Header, HTTPException
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -13,8 +14,18 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["admin"])
 
+_ADMIN_TOKEN = os.getenv("ADMIN_TOKEN", "")
 
-@router.get("/stats")
+
+def _verificar_admin(authorization: str | None = Header(None)):
+    """Verifica token de admin. Si ADMIN_TOKEN no está configurado, bloquea todo."""
+    if not _ADMIN_TOKEN:
+        raise HTTPException(status_code=403, detail="Admin no configurado")
+    if not authorization or authorization != f"Bearer {_ADMIN_TOKEN}":
+        raise HTTPException(status_code=401, detail="No autorizado")
+
+
+@router.get("/stats", dependencies=[Depends(_verificar_admin)])
 async def estadisticas(db: AsyncSession = Depends(get_db)):
     """Devuelve estadísticas del corpus y uso."""
     normas = await db.scalar(select(func.count(Norma.id)))
@@ -36,7 +47,7 @@ async def estadisticas(db: AsyncSession = Depends(get_db)):
     }
 
 
-@router.post("/reindex")
+@router.post("/reindex", dependencies=[Depends(_verificar_admin)])
 async def reindexar(db: AsyncSession = Depends(get_db)):
     """Dispara una reindexación del corpus (ejecuta bootstrap_corpus)."""
     from app.ingestion.pipeline import ejecutar_ingesta
