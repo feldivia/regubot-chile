@@ -6,7 +6,7 @@ import Message, { type MessageData } from './Message'
 import Disclaimer from './Disclaimer'
 import { type Cita, type DatoVivo } from '@/lib/api'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+const API_URL = process.env.NEXT_PUBLIC_API_URL || ''
 
 export default function Chat() {
   const [messages, setMessages] = useState<MessageData[]>([])
